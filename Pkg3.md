@@ -15,7 +15,7 @@ Each package depot contains the following directories:
 - **`registries`:** named registries describe sets of packages, versions and compatibility between them.
 - **`libraries`:** installed versions of libraries (e.g. `libcairo`,  `libpango`).
 - **`packages`:** installed versions of Julia packages (e.g. `Cairo`,  `DataFrames`, `JuMP`).
-- **`environements`:** named sets of versions of libraries and packages and global configuration.
+- **`environments`:** named sets of versions of libraries and packages and global configuration.
 
 Some environment and/or Julia variable – `DEPOT_PATH` maybe? – will control the set of depots visible to a Julia process. The registries, libraries, packages, and environments visible to Julia are the union across all depots in the depot path.
 
@@ -37,7 +37,7 @@ Installed libraries and packages are immutable: instead of updating libraries or
 
 ## Environments
 
-An **environment** catures a specific set of package and library versions and their global configuration. Pkg2 has some limited support for changing environments using the `JULIA_PKGDIR` environement variable. Pkg3 makes named environements and project-local environments a primary part of its design, making the invocation of Julia with different sets of libraries and packages for more convenient. It also standardizes how to record the names and versions of libraries and packages that are used, improving reproducibility.
+An **environment** catures a specific set of package and library versions and their global configuration. Pkg2 has some limited support for changing environments using the `JULIA_PKGDIR` environement variable. Pkg3 makes named environments and project-local environments a primary part of its design, making the invocation of Julia with different sets of libraries and packages for more convenient. It also standardizes how to record the names and versions of libraries and packages that are used, improving reproducibility.
 
 In Pkg2, package operations like `Pkg.add`, `Pkg.rm`, and `Pkg.update` are somewhat inconsistent about whether they operate on the current running Julia process or not. This is because different actions have different feasibility with respect to the current session: it's possible to install or update a package before it is loaded, but it is impossible to remove or update an already-loaded package. Thus, performing operations on the set of available packages *in general* requires a restart of the process before it can take effect, but installing and then loading a new package without restarting the current process is common and useful.
 
