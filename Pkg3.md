@@ -58,12 +58,12 @@ When starting Julia, it is given an environment by default, by name or by path:
 
 An environment spec with no slash is taken to be a named environment – except for the special name `.` which indicates using the current project environment. An environment spec with a slash is taken to be a path (relative or absolute): if the path is a directory, it is interpreted as a project and the project environment is used; if the path is a file, it is loaded as an environment specification (in TOML format, see "Configuration" below).
 
-An environment spells out exactly what version of each of a set of packages and libraries to use (version, hash, path, etc.). A Julia process can be "closed" or "open" with respect to its environment:
+An environment spells out exactly what version of each of a set of packages and libraries to use (version, hash, path, etc.). A Julia process can be "open" or "closed" with respect to its environment:
 
-- **Closed:** packages that are not in the environment cannot be loaded.
 - **Open:** packages that are not in the environment can be loaded. They will be resolved greedily in the order they are loaded, choosing the highest installed version that satisfies the requirements of the environment and all loaded packages. If no statisfactory version is installed, but some registered version exists that would satisfy all requirements, the user is prompted to install and use it.
+- **Closed:** packages that are not in the environment cannot be loaded.
 
-When started in interactive mode, Julia defaults to open; when started non-interactively, it defaults to closed. The environment also specifies which packages are "root" packages: these are the ones used by a project directly – other packages may be included as dependencies of root packages, but they are not meant to be used directly by a project via this environment – in certain modes of execution, `julia` may not allow non-root packages to be loaded directly by the application (e.g. in "closed mode").
+By default, Julia runs in open mode. When testing or deploying, however, Julia should default to closed mode to help ensure that a project hasn't inadvertently used packages that aren't recorded as dependencies. Since the project configuration also records which packages are direct dependencies, closed mode could enforce that project code only uses direct dependencies and indirect dependencies are only loaded indirectly. Note that this also helps address the problem that different packages may refer to different packages by the same top-level name.
 
 ### Project Environments
 
