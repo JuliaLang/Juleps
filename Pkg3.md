@@ -2,9 +2,9 @@
 
 A **depot** is a file system location where we keep infrastructure related to Julia package management: registries, libraries, packages, and environments. There are typically at least three of these:
 
-- **Standard depot:** default packages and libraries that ship with a specific version of Julia. This depot is strictly read-only. These versions of libraries and packages serve as a fallback when no other depots available. If you delete or disable this depot as well, standard packages will be unavailable. Example: `/usr/julia/standard`.
+- **Standard depot:** default packages and libraries that ship with a specific version of Julia. This depot is strictly read-only. These versions of libraries and packages serve as a fallback when no other depots available. If you delete or disable this depot as well, standard packages will be unavailable. Example: `/usr/local/share/julia/standard`.
 
-- **System depot:** package versions and libraries installed here are available to everyone on the system. They are typically only writable by administrators. If users want to add or upgrade packages, they will do so in their individual user depots. Example: `/usr/julia/system`.
+- **System depot:** package versions and libraries installed here are available to everyone on the system. They are typically only writable by administrators. If users want to add or upgrade packages, they will do so in their individual user depots. Example: `/usr/local/share/julia/system`.
 
 - **User depot:** package versions and libraries installed by a user. Example: `~/.julia/`.
 
