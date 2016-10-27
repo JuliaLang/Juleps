@@ -1,15 +1,13 @@
 # JULEP 3
 
 - **Title:** Pkg3
-- **Authors:**
-  - Stefan Karpinski <<stefan@karpinski.org>>
-  - Art Diky <<wildart@gmail.com>>
+- **Authors:** Stefan Karpinski <<stefan@karpinski.org>>, Art Diky <<wildart@gmail.com>>
 - **Created:** October 21, 2016
 - **Status:** work in progress
 
 ## Abstract
 
-Pkg3 is the working name of a replacement for Julia's built-in package manager, unofficially known as Pkg2. Pkg2 was introduced in Julia 0.2 as a replacement for Pkg1, the original package mangager included in the 0.1 release of Julia.
+Pkg3 is the working name for a next-generation replacement for Julia's built-in package manager, the current version of which is unofficially known as Pkg2 (since Julia 0.2, when it replaced the original Pkg1 introduced in the 0.1 release of Julia).
 
 ## Rationale
 
