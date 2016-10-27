@@ -1,3 +1,31 @@
+# JULEP 3
+
+- **Title:** Pkg3
+- **Authors:**
+  - Stefan Karpinski <<stefan@karpinski.org>>
+  - Art Diky <<wildart@gmail.com>>
+- **Created:** October 21, 2016
+- **Status:** work in progress
+
+## Abstract
+
+Pkg3 is the working name of a replacement for Julia's built-in package manager, unofficially known as Pkg2. Pkg2 was introduced in Julia 0.2 as a replacement for Pkg1, the original package mangager included in the 0.1 release of Julia.
+
+## Rationale
+
+There are a number of issues with the design of Pkg2, which necessitate a redesign:
+
+- Pkg2's METADATA repository format uses many small files to represent data, which leads to awful performance on many filesystems, especially on Windows.
+- Pkg2 uses a variety of ad hoc configuraration formats which are simple but not particularly consistent.
+- Pkg2 identifies versions of packages by git SHA1 commit hashes. This forces the package manager to use git to acquire package versions and makes package installation and verification impossible without including the entire git history of a package impractical.
+- Some Julia packages have large objects in their git history, which users are forced to download even when they are installing more recent versions which no longer include those objects.
+- Pkg2 makes replacing a package with another package of the same name with disjoint git history a nightmare. This happened when `Stats` was renamed to `StatsBase` and a new `Stats` package was created. The only practical way to resolve this situation was to delete all packages and start over.
+- Pkg2 was designed to allow package development in the same location as package installation for usage. This design forces Pkg2 to use complex and subtle heuristics to try to determine when it is safe to update or modify installed packages. A large amount of code complexity stems from this design.
+- Pkg2's package version resolution is designed to depend only on requirements and version information in METADATA. This implies that any update tends to update all packages, which is typically undesirable, and effectively assumes that the user has carefully and accurately curated their exact requirement of packages, and that package developers never break things – neither of which is typically true.
+- In Pkg2 any operation on packages invokes a full version resolution: adding or removing a new package updates all packages. This is very bad behavior for a package manager. It should be possible to add a new package with zero or minimal changes to pre-installed packages. It should always be possible to remove a package by simply removing all packages that depend on it.
+- Pkg2 provides little support for projects tracking the precise versions of libraries and packages that they have used. This makes reproducibility more challenging than it should be.
+- The `JULIA_PKGDIR` environent variable allows some amount of simulation of virtualenv-like "environments" – i.e. different sets of packages and language versions. This could be much better supported, however, and environment contents should ideally be easily commitable and sharable between differenet projects and systems, at various levels of granularity.
+
 ## Depots
 
 A **depot** is a file system location where we keep infrastructure related to Julia package management: registries, libraries, packages, and environments. There are typically at least three of these:
