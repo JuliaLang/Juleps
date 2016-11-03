@@ -7,20 +7,20 @@
 
 ## Abstract
 
-Pkg3 is the working name for a next-generation replacement for Julia's built-in package manager, the current version of which is unofficially known as Pkg2 (since Julia 0.2, when it replaced the original Pkg1 introduced in the 0.1 release of Julia).
+Pkg3 is the working name for a next-generation replacement for Julia's built-in package manager, the current version of which is unofficially known as Pkg2 (introduced in Julia 0.2 to replace the original Pkg1).
 
 ## Rationale
 
-There are a number of issues with the design of Pkg2, which necessitate a redesign:
+There are a number of issues with the design of Pkg2, which necessitate a redesign and replacement:
 
 - Pkg2's METADATA repository format uses many small files to represent data, which leads to awful performance on many filesystems, especially on Windows.
 - Pkg2 uses a variety of ad hoc configuraration formats which are simple but not particularly consistent.
-- Pkg2 identifies versions of packages by git SHA1 commit hashes. This forces the package manager to use git to acquire package versions and makes package installation and verification impossible without including the entire git history of a package impractical.
-- Some Julia packages have large objects in their git history, which users are forced to download even when they are installing more recent versions which no longer include those objects.
-- Pkg2 makes replacing a package with another package of the same name with disjoint git history a nightmare. This happened when `Stats` was renamed to `StatsBase` and a new `Stats` package was created. The only practical way to resolve this situation was to delete all packages and start over.
+- Pkg2 identifies versions of packages by git SHA1 commit hashes. This forces the package manager to use git to acquire package versions and makes package installation and verification impossible without including the entire git history of a package – which can be impractical.
+- Some Julia packages have large objects in their git history, which users are forced to download even when they are installing more recent versions that no longer include these large objects.
+- Pkg2 makes replacing a package with another package of the same name with disjoint git history a nightmare. This happened when `Stats` was renamed to `StatsBase` and a new `Stats` package was created. The only practical way to resolve this situation was to delete all packages and start over. Moreover, versions of `StatsBase` from before the rename became uninstallable afterwards.
 - Pkg2 was designed to allow package development in the same location as package installation for usage. This design forces Pkg2 to use complex and subtle heuristics to try to determine when it is safe to update or modify installed packages. A large amount of code complexity stems from this design.
-- Pkg2's package version resolution is designed to depend only on requirements and version information in METADATA. This implies that any update tends to update all packages, which is typically undesirable, and effectively assumes that the user has carefully and accurately curated their exact requirement of packages, and that package developers never break things – neither of which is typically true.
-- In Pkg2 any operation on packages invokes a full version resolution: adding or removing a new package updates all packages. This is very bad behavior for a package manager. It should be possible to add a new package with zero or minimal changes to pre-installed packages. It should always be possible to remove a package by simply removing all packages that depend on it.
+- Pkg2's package version resolution is designed to depend only on requirements and version information in METADATA, *not* on the current set of installed package versions. This implies that any update potentially updates all packages to the latest available version. This is typically undesirable: one often wants to do much more conservative, targeted updates of a subset of installed packages. Pkg2's update behavior effectively assumes that the user has carefully and accurately curated their exact requirement of packages, and that package developers never break things – neither of which is typically true.
+- In Pkg2 *any* operation on packages invokes a full version resolution, not just explicit updates: adding or removing a new package updates all packages. This is unfortunate behavior for a package manager. It should be possible to add a new package with zero or minimal changes to pre-installed packages. It should always be possible to remove a package by simply removing it and its dependents.
 - Pkg2 provides little support for projects tracking the precise versions of libraries and packages that they have used. This makes reproducibility more challenging than it should be.
 - The `JULIA_PKGDIR` environent variable allows some amount of simulation of virtualenv-like "environments" – i.e. different sets of packages and language versions. This could be much better supported, however, and environment contents should ideally be easily commitable and sharable between different projects and systems, at various levels of granularity.
 
@@ -153,7 +153,7 @@ Compatibility claims in Pkg3 are expressed at *exactly* minor version granularit
 - **version range:** `"a.b-a.c"` includes versions with `major == a && b ≤ minor ≤ c`;
 - **negated patch:** `"!a.b.c"` excludes versions with `major == a && minor == b && patch == c`.
 
-A list of terms expresses a set of package versions: the union of versions included in minor version strings and version range strigs, minus the specific versions excluded by negated patch strings. In other words, the version list `["1.2-1.4", "!1.2.5", "2.0"]`  includes any version such that
+A list of terms expresses a set of package versions: the union of versions included in minor version strings and version range strings, minus the specific versions excluded by negated patch strings. In other words, the version list `["1.2-1.4", "!1.2.5", "2.0"]`  includes any version such that
 
 ```julia
 major == 1 && (2 ≤ minor ≤ 4) && !(major == 2 && patch == 5) || major == 2 && minor == 0)
@@ -379,7 +379,7 @@ repository = "https://github.com/ExampleOrg/Example.jl.git"
     uuid = "85241492-0f92-400a-8719-bdc0424991f7"
     versions = ["1.2-1.3", "!1.2.5"]
 
-    [Optional]
+    [version.package.Optional]
     uuid = "f7faa14e-633f-4b87-8f63-428f7e99170d"
     versions = "3.7"
     optional = true
@@ -400,7 +400,7 @@ repository = "https://github.com/ExampleOrg/Example.jl.git"
     uuid = "85241492-0f92-400a-8719-bdc0424991f7"
     versions = ["1.2-1.4", "!1.2.5", "2.0"]
 
-    [Optional]
+    [version.package.Optional]
     uuid = "f7faa14e-633f-4b87-8f63-428f7e99170d"
     versions = ["3.7", "!3.7.3"]
     optional = true
