@@ -156,7 +156,7 @@ Compatibility claims in Pkg3 are expressed at *exactly* minor version granularit
 A list of terms expresses a set of package versions: the union of versions included in minor version strings and version range strings, minus the specific versions excluded by negated patch strings. In other words, the version list `["1.2-1.4", "!1.2.5", "2.0"]`  includes any version such that
 
 ```julia
-major == 1 && (2 ≤ minor ≤ 4) && !(major == 2 && patch == 5) || major == 2 && minor == 0)
+major == 1 && (2 ≤ minor ≤ 4) && !(minor == 2 && patch == 5) || major == 2 && minor == 0)
 ```
 
 Compatibility lists should be normalized according to the following rules:
