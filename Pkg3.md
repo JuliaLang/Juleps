@@ -407,3 +407,106 @@ repository = "https://github.com/ExampleOrg/Example.jl.git"
 ```
 
 This format is pretty verbose. We could design a custom compression scheme for this format, aggregating information across multiple versions of the same package, or simply use general purpose compression. General purpose compression would be easier, certainly, but would still require parsing of a potentially very large number of version sections once they're uncompressed. A custom compression scheme could support faster parsing of logically compressed data, allowing the package manager to query the compressed data as-is.
+
+## Operations
+
+In this section, we go through various operations on the set of packages in an environment. This supposes a `pkg>` REPL mode that has command-like syntax. For some operations, we'll provide pseudo-code for operations, which is not intended to actually work or even use real operation names, but to suggest the general operation. We distinguish top-level dependencies of a project – i.e. packages that appear in `Config.toml` with name, UUID, and compatible versions – from indirect dependencies which do not appear in `Config.toml` but do appear in `Manifest.toml` beacuse they are recursively depended on by top-level dependencies. Each pseudo-code snippet has an implicit preamble like this:
+
+```julia
+cfg₀ = load("Config.toml")
+env₀ = merge(load("Manifest.toml"), load("Local.toml"))
+```
+
+There is a similar postamble saving cfg₁ and env₁ back to `Config.toml` and env₁ to `Manifest.toml` and `Local.toml` as determined by the configuration splitting those files (TBD = to be designed).
+
+### Adding packages
+
+#### Synopsis
+
+```
+pkg> add p₁ [=v₁] p₂ [=v₂] …
+```
+
+Add packages p₁, p₂, … as top-level dependencies of the current environment, adding version constraints as indicated.
+
+#### Example
+
+```
+pkg> add Foo Bar=1 Baz=2.3 Qux=4.5.6
+```
+
+This command installs `Foo` at any version, `Bar` at major version 1, `Baz` at major/minor version 2.3, and `Qux` at exactly version 4.5.6. Corresponding constraints on these packages are added to `Config.toml`.
+
+#### Pseudo-code
+
+```julia
+cfg₁ = add(cfg₀, p₁ => v₁, p₂ => v₂, …)
+env₁ = resolve(cfg₁, env₀, fix = [:all|:top|:none])
+```
+
+#### Dependency fixing
+
+There are three available strategies for keeping dependencies fixed when adding top-level packages:
+
+1. **Fix all:** Only extend env₀ – i.e. env₁ ⊇ env₀. No versions in the manifest are changed, only new packages are added to it.
+2. **Fix top:** Only allow changing indirect dependencies, not top-level dependencies. I.e. don’t change the versions of any packages that appear in cfg₀ – packages that aren’t directly used by the project are fair game to change the installed versions of (and to add or remove to the environment).
+3. **Fix none:** add, remove, update any packages to satisfy cfg₁, but only change what you have to.
+
+It is important to note that unlike Pkg2, with all strategies, even `fix = :none` , package versions are never changed unnecessarily. If you *also* want to upgrade packages to newer versions, you can do an upgrade operation before or after doing the add operation.
+
+#### Questions
+
+Do we really need multiple strategies, or can we just pick one of them?
+
+If the operation fails, what state should `Config.toml` and `Manifest.toml`, etc. be left in?
+
+### Removing packages
+
+#### Synopsis
+
+```
+pkg> rm p₁ p₂ …
+```
+
+Remove top-level packages p₁, p₂, … from the current environment.
+
+#### Example
+
+```
+pkg> rm Foo Qux
+```
+
+Remove the packages `Foo` and `Qux` and any indirect dependencies that are only installed because of them. If any top-levels recursively depend on them (this can be direct or indirect via indirect dependencies, even though that's a somewhat strange situation), we could prompt the user if they want to remove those as well.
+
+#### Pseudo-code
+
+```julia
+cfg₁ = rm(cfg₀, p₁, p₂, …)
+env₁ = resolve(cfg₁, env₀, fix = :all)
+```
+
+For package removal, it’s always possible to leave all remaining packages at the same version. Just remove p₁, p₂, …, and any indirect dependencies that aren’t necessary anymore. What remains is always a coherent set of packages.
+
+### Updating & upgrading packages
+
+I'm proposing that we distinguish between "updating" and "upgrading" packages: an update is a version bump while an upgrade is a more significant change in version. The intuition is that when up update packages, there are essentially two things we want:
+
+- **Update:** "Give me any bug fixes you've got but don't break my code."
+- **Upgrade:** "Install the latest version and if it breaks some stuff, I'll fix it."
+
+#### Synopsis
+
+```
+pkg> [update|upgrade] p₁ p₂ …
+```
+
+Update or upgrade the packages p₁ p₂ … or all packages if none are specified. Update bumps listed packages and all of their recursive dependencies to the latest patch release of the current major/minor version they're currently at; if indirect dependencies must be upgraded, they may be but only if needed to get bug fix release of something else. Upgrade changes all listed packages and their recursive dependencies to the latest version compatible with `Config.toml` .
+
+#### Pseudo-code
+
+```julia
+cfg₁ = cfg₀
+env₁ = [update|upgrade](cfg₀, env₀, p₁, p₂, …)
+```
+
+Whether the function `update` or `upgrade` is called depends on the operation.
