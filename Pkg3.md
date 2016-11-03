@@ -500,7 +500,33 @@ I'm proposing that we distinguish between "updating" and "upgrading" packages: a
 pkg> [update|upgrade] p₁ p₂ …
 ```
 
-Update or upgrade the packages p₁ p₂ … or all packages if none are specified. Update bumps listed packages and all of their recursive dependencies to the latest patch release of the current major/minor version they're currently at; if indirect dependencies must be upgraded, they may be but only if needed to get bug fix release of something else. Upgrade changes all listed packages and their recursive dependencies to the latest version compatible with `Config.toml` .
+Update or upgrade the packages p₁ p₂ … or all packages if none are specified. Update bumps listed packages and all of their recursive dependencies to the latest patch release of the current major/minor version they're currently at; if indirect dependencies must be upgraded, they may be but only if needed to get bug fix release of something else. Upgrade all listed packages and their recursive dependencies to the latest version compatible with `Config.toml` .
+
+#### Examples
+
+```
+pkg> update
+```
+
+Update all packages to the latest bugfixes.
+
+```
+pkg> update Bar Baz
+```
+
+Update `Bar` and `Baz` and all their dependencies to the latest bugfix releases.
+
+```
+pkg> upgrade
+```
+
+Upgrade all packages to their latest versions.
+
+```
+pkg> upgrade Bar Baz
+```
+
+Upgrade `Bar` and `Baz` and all their dependencies to their latest versions.
 
 #### Pseudo-code
 
