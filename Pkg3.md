@@ -261,7 +261,12 @@ knob = 1.5
 
 [package.Required]
 numbers = [4, 8, 15, 16, 23, 42]
+
+[package.Indirect]
+fiddle = true
 ```
+
+A parsed dictionary representation of a package's configuration will be passed to the package's `__init__` method when it is loaded, allowing a project to control the global runtime configuration of packages. It remains to be determined how runtime configuration data will be passed to libraries. Packages may not provide runtime configuration of other packages since packages (by definition) are projects that are intended to be reusable by other projects and are thus, not the primary project. Runtime configuration may be provided for non-top-level dependencies (e.g. `Indirect` in the above fragment).
 
 #### Manifest
 
