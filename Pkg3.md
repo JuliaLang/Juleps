@@ -95,7 +95,7 @@ By default, Julia runs in open mode. When testing or deploying, however, Julia s
 
 The environment specification of a project is split into three files: `Config.toml`, `Manifest.toml`, and `Local.toml`. (Each file name may also be prefixed with `Julia`, in which case the non-prefixed file, if it exists, is ignored.) The purpose of these files is to separate the environment into three parts:
 
-- `Config.toml`: manual configuration, checked into version control (intput)
+- `Config.toml`: manual configuration, checked into version control (input)
 - `Manifest.toml`: generated information, checked into version control (output)
 - `Local.toml`: generated information, not checked into version control (by product)
 
