@@ -14,7 +14,7 @@ Pkg3 is the working name for a next-generation replacement for Julia's built-in 
 There are a number of issues with the design of Pkg2, which necessitate a redesign and replacement:
 
 - Pkg2's METADATA repository format uses many small files to represent data, which leads to awful performance on many filesystems, especially on Windows.
-- Pkg2 uses a variety of ad hoc configuraration formats which are simple but not particularly consistent.
+- Pkg2 uses a variety of ad hoc configuration formats which are simple but not particularly consistent.
 - Pkg2 identifies versions of packages by git SHA1 commit hashes. This forces the package manager to use git to acquire package versions and makes package installation and verification impossible without including the entire git history of a package – which can be impractical.
 - Some Julia packages have large objects in their git history, which users are forced to download even when they are installing more recent versions that no longer include these large objects.
 - Pkg2 makes replacing a package with another package of the same name with disjoint git history a nightmare. This happened when `Stats` was renamed to `StatsBase` and a new `Stats` package was created. The only practical way to resolve this situation was to delete all packages and start over. Moreover, versions of `StatsBase` from before the rename became uninstallable afterwards.
