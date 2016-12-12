@@ -7,7 +7,7 @@
 
 ## Abstract
 
-The current `find` and `search` families of functions are not very consistent as regards
+The current `find` and `search` families of functions are not very consistent with regard to
 naming and supported features. This proposal aims to make the API more systematic. It is based
 on ideas discussed in particular in [issue #10593](https://github.com/JuliaLang/julia/issues/10593)
 and [issue #5664](https://github.com/JuliaLang/julia/issues/5664).
@@ -111,16 +111,20 @@ indices.
 - **How to search iteratively**:
     - Functions returning the next/previous match after a given index: simple, but require
     manual handling of indices.
-    - Functions returning an iterator over matches: more user-friendly, but overkill when
+    - Functions returning an iterator over matches: more user-friendly, though overkill when
     you only want the next match.
     - The first approach can fit all needs (even if it can be cumbersome), but the second
-    one probably cannot replace the first.
+    one can only replace the first one if it supports creating an iterator starting from
+    a given index (on which you can call `first` to get the first match).
 
 ## General Proposal 1
 
 The first proposal uses `find` for all-at-once variants, and `search` for iterative
 variants. The variants returning iterators (last two rows) do not correspond to existing
 functions: they could be added later, or never, without breaking the consistency of the API.
+In this proposal, it is not possible to have both methods returning the next/previous match
+and methods returning an iterator starting from a given index: the signatures would be the
+same.
 
 |  | nonzeros | predicate test | in collection `c` | equal to `v` | sequence or regex `s` | extrema |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -139,7 +143,8 @@ The second proposal uses `find` for functions returning one or several indices (
 all-at-once or iterative), and `search` for functions returning iterators (which
 currently do not exist). Contrary to the first proposal, it therefore allows for
 iterators starting at a a specific index. If those variants were not added in the end,
-only `find` would exist.
+only `find` would exist. Conversely, methods returning the next/previous match could be
+droppped in favor of iterators.
 
 |  | nonzeros | predicate test | in collection `c` | equal to `v` | sequence or regex `s` | extrema |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -154,7 +159,7 @@ exist in the current API.
 
 ## Particular Cases
 
-Other issues are more localized and can be fixed on by one, depending on the chosen general
+Other issues are more localized and can be fixed one by one, depending on the chosen general
 plan.
 
 - **`findin`**: This function is just a shorthand for `find(x -> x in c, A)`. It may not be
@@ -188,7 +193,7 @@ releases (to allow removing old conflicting methods first).
 
 - **Whether to return a `Nullable` instead of `0` when there is no match**
 ([PR#15755](https://github.com/JuliaLang/julia/pull/15755)): This is blocked by progress
-with regards to `Nullable`, in particular whether they are stack-allocated in all cases
+with regard to `Nullable`, in particular whether they are stack-allocated in all cases
 and whether they can be represented as a `Union` type. It is therefore out of this Julep's
 scope.
 
