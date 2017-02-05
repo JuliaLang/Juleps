@@ -49,7 +49,7 @@ The only method `AbstractPath` really needs to implement is a concatenate operat
 Having a `parent` method also helps, once you have that, then you start to get all the free methods I mentioned earlier.
 
 I suggest that Base would only contain implementation for Filepaths, and leave implementing other kinds of paths to packages.
-As part of this implentation, a String macro should be defined to convert String literal into paths. I suggest `@p_str`, so that `p"C:/Program Files/julia/julia.exe"`.
+As part of this implentation, a String macro should be defined to convert String literal into paths. I suggest `@p_str`, or perhaps `@path_str` or `@file_str`. Which would look like: `p"C:/Program Files/julia/julia.exe"`, `path"C:/Program Files/julia/julia.exe"`, or `file"C:/Program Files/julia/julia.exe"`"
 CommonLisp is one of the only other languages with String Macros and Multiple dispatch. I believe they do something similar to this.
 
 Having the path's as a type not only lets us allow weird, wacky, and useful paths; it also lets us bring sensible and robust handling based on being able to define different rules than are defined for strings. 
