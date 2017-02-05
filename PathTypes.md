@@ -1,16 +1,16 @@
 # JULEP PathTypes
 
 - **Title:** Using types for paths. 
-- **Authors:** 
-- **Created:** 31 Janurary 2017 (initial draft 2016-09-11)
+- **Authors:** Lyndon White (aka oxinabox) <lyndon.white@research.uwa.edu.au>
+- **Created:** 31 January 2017
 - **Status:** work in progress
 
 ## Abstract:
 
-Add a AbstractPath type  and deprecate  `open(::AbstractString)` infavour of `open(::AbstractPath)`
+Add a AbstractPath type  and deprecate  `open(::AbstractString)` in favour of `open(::AbstractPath)`
 AbstractPaths allow code to be written without caring where or how the data is stored.
-Using types for paths allow us to enfornce some validity and constancy rules.
-This also allows for multiple dispatch differenciating between a Path to a file, and that files contents as a string.
+Using types for paths allow us to enforce some validity and constancy rules.
+This also allows for multiple dispatch differentiating between a Path to a file, and that files contents as a string.
 
 ## Proposal
 
@@ -29,7 +29,7 @@ More generally I often find myself wanting to define methods that take a:
 `IO` -- Process the data from a stream
 `AbstractString` (Filepath) --  that load data frome a file then process the contents
 
-This to me is a pretty standard pattern -- to the extent I have started to define macros to define the various methods in terms of cannonical method.
+This to me is a pretty standard pattern -- to the extent I have started to define macros to define the various methods in terms of canonical method.
 But to allow it to work I need to define at least 2 functions, a `load(path::AbstractString)` and `load(io::IO)` and then `load_content(data::AbstractString)`.
 So this got me thinking: I wish Path's were their own distinct type, so that I coud dispatch on them.
 
@@ -41,7 +41,7 @@ And that once you have defined these couple of features, you can get a bundle of
 
 I suggest that julia should have an `AbstractPath` type, that represents an hierarchical index for data that can be `open`ed. Much like a Symbol is a type that represents the name, an path is a type that represents a location.
 Abstract Path need not only represent a filepath, but any path more generally.
-A URL, A Module/Submodule name, a XPATH expression, a Glob.
+A URL, A module/submodule name, a XPATH expression, a Glob.
 
 Each implementation of `AbstractPath`, would define a `RelativePath` type, a few methods for manipulating it generally, and 1 or more *Roots*, from which we would use a macro to define a `AbsolutePath`, as a root, paired with a `RelativePath`. Beyond this implementations could specify special methods that only work for that particular type of path.
 
@@ -57,16 +57,16 @@ Having the path's as a type not only lets us allow weird, wacky, and useful path
 ---
 
 I’ve  specified distinguishing Absolute from Relative Paths.
-This defination makes sense for all abstract paths.
+This definition makes sense for all abstract paths.
 For file paths, which are better explored, other libraries
 show how it can also be broken up in other, additional  ways.
 
 
 Many systems distinguish WindowsPaths from PosixPaths.
 This makes sense since there any many differences. 
-Like there being many differnt allowed roots for Windows paths; a different prefered joining slash; and case insensitivity.
+Like there being many different allowed roots for Windows paths; a different prefered joining slash; and case insensitivity.
 
-[Python3's PathLib](https://docs.python.org/3/library/pathlib.html) also distiguishes, Pure Paths from Concrete Paths.
+[Python3's PathLib](https://docs.python.org/3/library/pathlib.html) also distinguishes, Pure Paths from Concrete Paths.
 Pure Paths can operate without touching the filesystem, Concrete Paths do not make that promise.
 Many operations on Concrete Paths fail if the object being targetted does not exist
 
@@ -74,8 +74,8 @@ Many operations on Concrete Paths fail if the object being targetted does not ex
 The [Haskel path](https://hackage.haskell.org/package/path) package additionally (again) differenciates FilePaths from DirectoryPaths. This allows them to have rules that stop any path's being concatenated onto a FilePath, sine that is terminal
 
 The question of how far down this path to go is an open one.
-It might be something better resolved with traits than the normal hierachical type system.
-A nice feature of defining `AbstractPaths`, is if desired different packages can define more (or less) rigerious definations of a filepath. And user's choosing to use such libraries will find they interact seemlessly with Base and with any other package.
+It might be something better resolved with traits than the normal hierarchical type system.
+A nice feature of defining `AbstractPaths`, is if desired different packages can define more (or less) rigorous definitions of a filepath. And user's choosing to use such libraries will find they interact seamlessly with Base and with any other package.
 
 
 # Pre-empted Questions:
@@ -84,7 +84,7 @@ A nice feature of defining `AbstractPaths`, is if desired different packages can
 
 
 Because Julia is data-obsessed, but we shouldn’t prescribe where the data is located.
-As a package writer we don’t care if the data is on a local disk, a network disk, hosted on a website, in a database, or even as a element of a XML document. So long as whereever it is hosted, it exposes a API meeting out needs. 
+As a package writer we don’t care if the data is on a local disk, a network disk, hosted on a website, in a database, or even as an element of an XML document. So long as where ever it is hosted, it exposes a API meeting out needs. 
 Basicaly so long as `open` works on the location description the end user provides; then it is the users problem to ensure it meets their other format requirements (Eg don't open a JSON file, with an XML Parser).
 
 I was started on this, because I was using [WordNet.jl](https://github.com/jbn/WordNet.jl),
@@ -95,8 +95,8 @@ So I thought I would define in [SwiftObjectStores.jl](https://github.com/oxinabo
 
 ## Why should this be in Base? You could have it in a package.
 
-This shoud be in Base, rather than in a package, because only Base can deprecate `open(::AbstractString)`.
-It is important to deprecate `open(::AbstractString)` because this will force all packges to use `open(::AbstractPath)`.
+This should be in Base, rather than in a package, because only Base can deprecate `open(::AbstractString)`.
+It is important to deprecate `open(::AbstractString)` because this will force all packages to use `open(::AbstractPath)`.
 Thus achieving the goal of the user being able to store there data where ever they want.
 Otherwise package authors will probably never update since it would mean adding another dependancy, to even make it an option.
 
@@ -107,7 +107,7 @@ Brett Cannon, who worked on Python3's PathLib, has written [a blog post about th
 His key point is that while all path can be represented as strings, they are semantically very different, supporting different operations -- you can't just append a random string to a path, and get back a path. See some of the discussion on path operations in [my own blog post, linked earlier](http://white.ucc.asn.au/2016/09/14/an-algebraic-structure-for-path-schema-take2.html).
 
 
-Further, to this point, with the highly abstracted defintion of a path, some useful paths don't have nice string representations.
+Further, to this point, with the highly abstracted definition of a path, some useful paths don't have nice string representations.
 Consider that a path contains all the information that is required to open a location.
 For a networked store, this could include an authentication token, in the form of a binary blob.
 
