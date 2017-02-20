@@ -117,6 +117,7 @@ indices.
     one can only replace the first one if it supports creating an iterator starting from
     a given index (on which you can call `first` to get the first match).
 
+
 ## General Proposal 1
 
 The first proposal uses `find` for all-at-once variants, and `search` for iterative
@@ -191,6 +192,8 @@ releases (to allow removing old conflicting methods first).
 
 ## Issues Beyond the Scope of This Julep
 
+These are important to resolve but are not covered by the above proposals.
+
 - **Whether to return a `Nullable` instead of `0` when there is no match**
 ([PR#15755](https://github.com/JuliaLang/julia/pull/15755)): This is blocked by progress
 with regard to `Nullable`, in particular whether they are stack-allocated in all cases
@@ -205,3 +208,13 @@ computing the linear index is slow for `LinearSlow` arrays, which means that ret
 the same index type as `eachindex(A)` could be a better default; it also makes more sense
 for multidimensional arrays. Then one would write `find(LinearIndex, A)` or  `find(Int, A)`
 to always get a linear index.
+
+- **Sentinel values in a world where array indices do not necessarily start with 1**:
+    - `findfirst(x, v)` returns 0 if no value matching `v` is found;
+      however, if `x` allows 0 as an index, the meaning of 0 is
+      ambiguous. One could return `typemin(Int)` or
+      `minimum(linearindices(x))-1`, but what if `x` starts indexing
+      at `typemin(Int)`?
+    - No matter sentinel value gets returned, the deprecation
+      strategy here is delicate. There may be a lot of code that
+      checks the return value and compares it to 0.
