@@ -48,23 +48,33 @@ but it returns `0` for elements that were not found, instead of a shorter vector
 This diversity can be organized along several dimensions, which are not always combined
 systematically in the existing API:
 
-- **Mode of operation**: look for all matches at once (`find`, `findin`, `indexin`),
-iteratively forward (`findnext`, `search`), iteratively backwards (`findprev`, `rsearch`),
-or look for the first match (`findfirst`, `searchsortedfirst`) or the last one
-(`findlast`, `searchsortedlast`)
+- **Mode of operation**:
+  - all matches at once (`find`, `findin`, `indexin`)
+  - iteratively forward (`findnext`, `search`)
+  - iteratively backwards (`findprev`, `rsearch`)
+  - the first match (`findfirst`, `searchsortedfirst`)
+  - the last match (`findlast`, `searchsortedlast`)
 
-- **Look for**: non-zeros or `true` entries (`find(A)`), predicate-test-true
-(`find(pred, A)`), elements present in a collection (`findin`, `indexin`),
-elements equal to a value (`findfirst(A, v)`, `findlast(A, v)`, `findnext(A, v)`,
-`findprev(A, v)`), extrema (`findmin`, `findmax`), or a range of elements matching
-a sequence (`search*`, mostly for strings)
+- **Look for**:
+  - non-zeros or `true` entries (`find(A)`)
+  - predicate-test-true (`find(pred, A)`)
+  - elements present in a collection (`findin`, `indexin`)
+  - elements equal to a value (`findfirst(A, v)`, `findlast(A, v)`, `findnext(A, v)`,
+`findprev(A, v)`)
+  - extrema (`findmin`, `findmax`)
+  - range of elements matching a sequence (`search*`, mostly for strings)
 
-- **Return**: linear indices (most `find*` functions), cartesian indices (`findn`),
-cartesian indices and values (`findnz`), range of linear indices (`search*`)
+- **Return**:
+  - linear indices (most `find*` functions)
+  - cartesian indices (`findn`)
+  - cartesian indices and values (`findnz`)
+  - range of linear indices (`search*`)
 
-- **Return when not found**: shorter vector for all-at-once functions (`find`, `findin`,
-`findn`, `findfnz`) except `indexin` (which includes a `0` entry), `0` for functions
-returning a single index
+- **Return when not found**:
+  - shorter vector for all-at-once functions (`find`, `findin`,
+`findn`, `findfnz`)
+  - except `indexin` which includes a `0` entry
+  - `0` for functions returning a single index
 
 ## Summary of Current Status
 
