@@ -39,7 +39,7 @@ rather than `println()`.  We should have:
   logging vs stdout.
 * To encourage the use of logging over ad hoc console output, the default
   console log handler should emphasize the *log message*, and metadata should be
-  printed in a non-intrusive way.
+  communicated in a non-intrusive way.
 
 
 The API should be **flexible enough** for advanced users:
@@ -49,7 +49,10 @@ The API should be **flexible enough** for advanced users:
 * Log records are more than a string: loggers typically gather context
   information both lexically (eg, module, file name, line number) and
   dynamically (eg, time, stack trace, thread id).  The API should preserve this
-  structured information, perhaps as a LogRecord type.
+  structured information.
+* Users should be able to add structured information to log records, to be
+  preserved along with data extracted from the logging context. For example, a
+  list of `key=value` pairs offers a decent combination of simplicity and power.
 * Formatting and dispatch of log records should be in the hands of the user if
   they need it. For example, a log handler library may need to write json
   records across the network to a log server.
@@ -57,9 +60,8 @@ The API should be **flexible enough** for advanced users:
   choosing a context for zero setup logging may not suit all cases.  For
   example, in some cases we may want to use a log context explicitly attached to
   a user-defined data structure.
+* It should be possible to control log filtering per thread or task.
 * Possible extensions
-    * User supplied `key=value` pairs for additional log context?
-    * Support for user defined log levels?
     * Unique message IDs based on code location for finer grained message
       filtering?
 
@@ -104,10 +106,11 @@ retaining the same flexibility.
 
 * A summary of how this all fits in with Logging.jl, MiniLogging.jl, Memento.jl,
   LumberJack.jl, and any other logging libraries which can be found.
-* glib - https://developer.gnome.org/glib/stable/glib-Message-Logging.html
-* Lager - https://github.com/erlang-lager/lager
+* glib (C) - https://developer.gnome.org/glib/stable/glib-Message-Logging.html
+* a-cl-logger (Common lisp) - https://github.com/AccelerationNet/a-cl-logger
+* Lager (Erlang) - https://github.com/erlang-lager/lager
 * Some java logger *cough*?  That should be enterprisey enough, right ;-)
-* syslog ?
+* syslog (unix) ?
 
 TODO - much more here.
 
