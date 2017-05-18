@@ -173,9 +173,6 @@ exist in the current API.
 Other issues are more localized and can be fixed one by one, depending on the chosen general
 plan.
 
-- **`findin`**: This function is just a shorthand for `find(x -> x in c, A)`. It may not be
-needed now that anonymous functions are fast.
-
 - **`findmin` and `findmax`**: `findmin` and `findmax` are inconsistent
 with both proposals, since they return an `(index, value)` tuple instead of an index. They
 should be changed to return an index (as in both proposals above). A new name needs to be
