@@ -1,3 +1,10 @@
+# Julep: UTC Dates
+
+- **Title:** Make the Dates Module Accept UTC Leap Seconds
+- **Authors:** Stephan B., Swedish Institute of Space Physics
+- **Created:** May 21, 2017
+- **Status:** request for comment
+
 ## Introduction
 
 Usually technical systems generate absolute time stamps in UTC. Julia
@@ -112,5 +119,3 @@ Leap second time stamps, potentially originating from automatic
 systems, could get accepted and returned back to a caller. It would
 also facilitate to build higher precision types on top of
 `UTCinstant`, using additional segmentation.
-
-Stephan B., Swedish Institute of Space Physics
