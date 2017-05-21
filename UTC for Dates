@@ -1,0 +1,116 @@
+## Introduction
+
+Usually technical systems generate absolute time stamps in UTC. Julia
+Base DateTime cannot represent times that occur in leap seconds, which
+are from time to time inserted into UTC. Several other widely used
+representations of time have the same problem: Astronomical Julian
+days, time types of the C standard lib, Matlab day numbers,
+... Practically it is quite a minor problem. Leap seconds are on
+average roughly only every 18 months. Most computers and mobile
+devices are automatically configured to use the NTP protocol and can
+circumvent leap seconds by halting the system clock for these
+times. This has greatly reduced the risk that leap second time stamps
+get generated.
+
+Nevertheless the leap seconds seem to have been so disturbing for the
+Julia community, that the documentation for DateTime is now claiming
+not to handle UTC at all, but implementing UT, more precisely
+UT1. This is not a good idea, and I have submitted a PR to retract
+this claim. The conversion between UTC and UT1 is non-trivial,
+involves large tables, which are updated frequently, presently there
+is no support in any package, there are many more arguments ...
+
+Rather the internal presentation of time in Base DateTime should be
+changed to allow for leap seconds, which is this proposal. Not always
+is halting the system clock, even for just 1 second, an option, like
+not on many of the satellites. Naturally solutions how to present time
+including leap seconds can be found in the area of space flight. This
+proposal is inspired by CDS described in a Blue Book,
+https://public.ccsds.org/Pubs/301x0b4e1.pdf which the reader may want
+to consult.
+
+For calender time arithmetic Julia DateTime assumes that each day has
+86400 s. With leap seconds this is not always the case, which at first
+glance seems disturbing. I don't think so. Calendar metric, for what
+it is used, does not need to agree precisely with physically elapsed
+seconds, and should continue to be done as it is now.
+
+## Day segmented time type
+
+We are used to segment time for ourselves, into years, months, days,
+... . Computers are typically instructed to use a single, unsegmented
+code for time, probably because we think, that it is most efficient in
+terms of computation and memory consumption. However, the UTC standard
+says, that a day has 86399, 86400, or 86401 seconds, and then
+a day segmented time presentation is natural.
+
+An updated Julia Base DateTime would use instead of the millisecond counter
+```julia
+immutable UTCinstant
+    day2000::Int32   # nr of days since 2000-01-01
+    hus::Int32       # nr of 100 microsec on day
+end
+```
+
+To mark that this is a new time code, I suggest to use 2000-01-01 for
+the epoch. Day numbers before 2000-01-01 are then negative, and we can
+represent back in time about 6 million years (and the same into the
+future). 
+
+With 32 bits for a (sub)seconds of day counter the smallest possible
+increment is 100 microseconds (us, 864009999<2^31-1). Using an
+unsigned wouldn't allow for 10x smaller. So with 32 bit signeds for
+the day counter and for a 100 us counter, the `UTCinstant` uses in
+total the same amount of memory and allows for a somewhat higher
+precision than the present millisecond counter. A computer's
+system clock stays synced to UTC within about 100 us, if there is
+a high precision NTP server on the same LAN (often at larger
+universities).
+
+## Date module interface
+
+### Constructors
+
+Constructors of course will have to made accept leap second time
+stamps. They occur only on June 30 and December 31, which perhaps
+should be enforced in the constructors. But a lookup in a leap second
+table is not needed, a user might actually want to simulate (future)
+leap seconds that would not be in the table.
+
+### Types and functions
+
+Otherwise the existing functions and operators in `Date` should still
+behave as presently, i.e. assume that every day has 86400 s. Obviously
+returned time stamps would have up to 60 in the seconds of minute
+field/string.
+
+For interaction with software that cannot accept leap seconds, an
+iterator `restamp(collectionofdatetimes, ...)` would return time
+stamps only outside leap seconds, similar as OS calls for system time
+behave on many computers. It has to be an iterator, if several time
+stamps in the collection are in the leap second. Then their order
+should be preserved (they cannot all get restamped to the same
+value). At least on December 31 restamping should be to the same
+year/day, in case the times for example stamp financial
+transactions.
+
+### Leap second table
+
+A table of leap seconds is not needed for this proposal.
+
+## Coding
+
+The code for the `Dates` module would need to be adjusted to use
+`UTCinstant`, probably at many places. Perhaps tedious work, but no
+serious complications are expected.
+
+## Summary
+
+We propose to change the internal presentation of time in Julia Base
+to day segmented. This allows to represent times in leap seconds.
+Leap second time stamps, potentially originating from automatic
+systems, could get accepted and returned back to a caller. It would
+also facilitate to build higher precision types on top of
+`UTCinstant`, using additional segmentation.
+
+Stephan B., Swedish Institute of Space Physics
