@@ -7,17 +7,32 @@
 
 ## Abstract
 
-Production systems need robust and consistent logging; casual users want logging
-to be as simple as `println()`.  The logging interface in Base should support
-both these needs in a simple, flexible and efficient way.
+*Logging* is a tool for understanding program execution by recording the order and
+timing of a sequence of events.  A *logging library* provides tools to define
+these events in the source code and capture the event stream when the program runs.
+The information captured from each event makes its way through the system as a
+*log record*. The ideal logging library should give developers and users insight
+into the running of their software by provide tools to filter, save and
+visualize these records.
 
-In particular, this proposal seeks to:
-* Encourage package authors to include logging by keeping usage simple but
-  making it efficient and convenient.
-* Add a minimum number of features and concepts required to support log
-  filtering, formatting, and dispatch in production environments.
-* Unify logging under a common interface to avoid inconsistency of logging
-  configuration and handling between packages.
+Julia has included simple logging in `Base` since version 0.1, but the tools to
+generate and capture events are still immature as of version 0.6. For example,
+log messages are unstructured, there's no systematic capture of log metadata, no
+debug logging, inflexible dispatch and filtering, and the role of the code at
+the log site isn't completely clear.  Because of this, Julia 0.6 packages use
+any of several incompatible logging libraries, and there's no systematic way to
+generate and capture log messages.
+
+This julep aims to improve the situation by proposing:
+
+* A simple, unified interface to generate log events in `Base`
+* Conventions for the structure and semantics of the resulting log records
+* A minimum of dispatch machinery to capture, route and filter log records
+* A default backend for displaying, filtering and interacting with the log
+  stream which makes the log record structure visible.
+
+A non-goal is to create a complete set of logging backends - these can be
+supplied by packages.
 
 ## Desirable features
 
