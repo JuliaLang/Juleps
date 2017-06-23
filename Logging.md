@@ -168,10 +168,19 @@ backend, including system time, stack trace, current task id.
 
 ### The logging frontend
 
-### Dispatching records
+TODO
+
+### Logging middle layer
+
+TODO
 
 ### Early filtering
 
+TODO
+
+### Default backend
+
+TODO
 
 ## Concrete use cases
 
@@ -188,7 +197,7 @@ both in the code and for user control.
 * The depwarn system, and `--depwarn` command line flag
 
 
-## Inspriation
+## Inspiration
 
 This Julep draws inspiration from many previous logging frameworks, and helpful
 discussions with many people online and at JuliaCon 2017.
