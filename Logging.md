@@ -34,17 +34,21 @@ This julep aims to improve the situation by proposing:
 A non-goal is to create a complete set of logging backends - these can be
 supplied by packages.
 
-## Desirable features
+## The design problem - two competing users
 
-The desirable features fit into three rough categories - simplicity, flexibility
-and efficiency.
+The core of the logging design problem is the competing desires of two sets of
+users: package authors versus application authors.
 
-Logging should be **simple to use** so that package authors can reach for `info`
-rather than `println()`.  We should have:
+### The package author
 
-* A minimum of syntax - ideally just a logger verb and the message in most
-  cases.  Context information for log messages (file name, line number, module,
-  stack trace, etc.) should be automatically gathered without a syntax burden.
+The package author wants logging with the default setup to "just work": it
+should involve **zero setup** and should produce **output which is easy to
+understand**.
+
+* A minimum of syntax - ideally just a logger verb and the message object in
+  many cases.  Context information for log messages (file name, line number,
+  module, stack trace, etc.) should be automatically gathered without a syntax
+  burden.
 * Freedom in formatting the log message - simple string interpolation,
   `@sprintf` and `fmt()`, etc should all be fine.
 * No mention of log dispatch should be necessary at the message creation site.
@@ -53,10 +57,10 @@ rather than `println()`.  We should have:
   for consistency between packages, along with guiding the appropriate use of
   logging vs stdout.
 * The default console log handler should integrate somehow with the display
-  system to show log records in a way which is highly readable. Ideally logging
-  should be a tool for package authors just as much as it is a tool for
-  understanding production systems.
+  system to show log records in a way which is highly readable.
 
+
+### The application author
 
 The API should be **flexible enough** for advanced users:
 
