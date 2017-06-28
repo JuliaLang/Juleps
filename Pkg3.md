@@ -9,6 +9,43 @@
 
 Pkg3 is the working name for a next-generation replacement for Julia's built-in package manager, the current version of which is unofficially known as Pkg2 (introduced in Julia 0.2 to replace the original Pkg1).
 
+### Table of Contents
+- [JULEP 3](#julep-3)
+  - [Abstract](#abstract)
+  - [Rationale](#rationale)
+  - [Depots](#depots)
+  - [Immutability](#immutability)
+  - [Environments](#environments)
+    - [Using Environments](#using-environments)
+    - [Project Environments](#project-environments)
+  - [Packages](#packages)
+  - [Registries](#registries)
+  - [Versions & Compatibility](#versions--compatibility)
+  - [Configuration](#configuration)
+    - [Configuration Fragments](#configuration-fragments)
+      - [Package metadata](#package-metadata)
+      - [Version metadata](#version-metadata)
+      - [Compatibility](#compatibility)
+      - [Runtime Configuration](#runtime-configuration)
+      - [Manifest](#manifest)
+    - [Source Package File](#source-package-file)
+    - [Registry Package File](#registry-package-file)
+  - [Operations](#operations)
+    - [Adding packages](#adding-packages)
+      - [Synopsis](#synopsis)
+      - [Example](#example)
+      - [Pseudo-code](#pseudo-code)
+      - [Dependency fixing](#dependency-fixing)
+      - [Questions](#questions)
+    - [Removing packages](#removing-packages)
+      - [Synopsis](#synopsis)
+      - [Example](#example)
+      - [Pseudo-code](#pseudo-code)
+    - [Updating & upgrading packages](#updating--upgrading-packages)
+      - [Synopsis](#synopsis)
+      - [Examples](#examples)
+      - [Pseudo-code](#pseudo-code)
+
 ## Rationale
 
 There are a number of issues with the design of Pkg2, which necessitate a redesign and replacement:
