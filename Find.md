@@ -168,6 +168,36 @@ droppped in favor of iterators.
 \* These combinations are not needed as they correspond to `searchseq`. Indeed they do not
 exist in the current API.
 
+## Proposal 3
+
+This proposal adds `findeach(pred, A[, rev])`, which returns an iterator and can be used to
+implement most of the other functions in one line.
+Predicates are always used instead of separate functions for different kinds of searches when possible.
+This potentially allows using the same function for sequence searching, since a subsequence to look for
+is unlikely to be confused with a predicate.
+
+|  | nonzeros | predicate test | in collection `c` | equal to `v` | sequence or regex `s` |
+| --- | --- | --- | --- | --- | --- |
+| All at once | `find(A)` | `find(pred, A)` | `find(occursin(c), A)` | `find(equalto(v), A)` | `find(s, A)` |
+| Next match | `findeach(!iszero,A)` * | `findeach(pred,A)` * | `findeach(occursin(c),A)` * | `findeach(equalto(v),A)` * | `findeach(s,A)` * |
+| Previous match | `findeach(!iszero,A,true)` * | `findeach(pred,A,true)` * | `findeach(occursin(c),A,true)` * | `findeach(equalto(v),A,true)` * | `findeach(s,A,true)` * |
+| Forward iterator | `findeach(!iszero,A)` | `findeach(pred,A)` | `findeach(occursin(c),A)` | `findeach(equalto(v),A)` | `findeach(s,A)` |
+| Backward iterator | `findeach(!iszero,A,true)` | `findeach(pred,A,true)` | `findeach(occursin(c),A,true)` | `findeach(equalto(v),A,true)` | `findeach(s,A,true)` |
+
+\* Getting the next and previous matches is handled by the iteration protocol.
+If necessary, you can pass `findeach(pred, rest(itr, st))` to start at a particular state.
+We can keep `findnext` and `findprev`, since they operate on array indices while
+the general iterator needs to operate on state objects.
+
+We can also keep `findfirst` and `findnext`, since they are especially convenient.
+Ideally we will keep only `findfirst(pred, A)` and deprecate other methods.
+
+If we want, `find` can be deprecated to `collect(findeach(...))`.
+
+The following functions can also be deprecated to `findeach` calls: `findin`, `search`, `rsearch`, `match`, `eachmatch`.
+
+This proposal does not touch `findmin`, `findmax`, etc.
+
 ## Particular Cases
 
 Other issues are more localized and can be fixed one by one, depending on the chosen general
