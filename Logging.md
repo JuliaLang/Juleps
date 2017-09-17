@@ -28,78 +28,95 @@ This julep aims to improve the situation by proposing:
 * A simple, unified interface to generate log events in `Base`
 * Conventions for the structure and semantics of the resulting log records
 * A minimum of dispatch machinery to capture, route and filter log records
-* A default backend for displaying, filtering and interacting with the log
-  stream which makes the log record structure visible.
+* A default backend for displaying, filtering and interacting with the log stream.
 
 A non-goal is to create a complete set of logging backends - these can be
 supplied by packages.
 
-## The design problem - two competing users
+## The design problem
 
-The core of the logging design problem is the competing desires of two sets of
-users: package authors versus application authors.
+There's two broad classes of users for a logging library - library authors and
+application authors - each with rather different needs.
 
-### The package author
+### The library author
 
-The package author wants logging with the default setup to "just work": it
-should involve **zero setup** and should produce **output which is easy to
-understand**.
+Ideally logging should be a high value tool for library development, making
+library authors lives easier, and giving users insight.
 
-* A minimum of syntax - ideally just a logger verb and the message object in
-  many cases.  Context information for log messages (file name, line number,
-  module, stack trace, etc.) should be automatically gathered without a syntax
-  burden.
-* Freedom in formatting the log message - simple string interpolation,
-  `@sprintf` and `fmt()`, etc should all be fine.
+For the library author, the logging tools should make log events *easy to generate*:
+
+* Logging should require a minimum of syntax - ideally just a logger verb and
+  the message object in many cases.  Context information for log messages (file
+  name, line number, module, stack trace, etc.) should be automatically gathered
+  without a syntax burden.
+* Log generation should be free from prescriptive log message formatting. Simple
+  string interpolation, `@sprintf` and `fmt()`, etc should all be fine.  When
+  log messages aren't strings, a sensible conversion should be applied by
+  default.
+* Flexible user definable structure for log records should make it easy to
+  record snapshots of program state in the form of variable names and values.
+  This would generalize `@show` using log records as a transport mechanism.
+
+The default configuration for log message reporting should involve *zero
+setup* and should produce *readable output*:
+
 * No mention of log dispatch should be necessary at the message creation site.
-* Easy filtering of log messages.
-* Clear guidelines about the meaning and appropriate use of standard log levels
-  for consistency between packages, along with guiding the appropriate use of
-  logging vs stdout.
 * The default console log handler should integrate somehow with the display
-  system to show log records in a way which is highly readable.
+  system, to show log records in a way which is highly readable.
+* Basic filtering of log messages should be easy to configure.
 
+The default configuration for log message reporting will generally define what
+library authors see during development, so will end up defining the conventions
+authors use when including logging in their library.  To this extent, it's
+important to do a good job displaying metadata!
 
 ### The application author
 
-The API should be **flexible enough** for advanced users:
+Application authors bring together many disparate libraries into a larger
+system; they need consistency and flexibility in collecting log records.
 
-* For all packages using the standard logging API, it should be simple to
-  intercept, filter and redirect logs in a unified and centrally controlled way.
-* Log records are more than a string: loggers typically gather context
-  information both lexically (eg, module, file name, line number) and
-  dynamically (eg, time, stack trace, thread id).  The API should preserve this
-  structured information.
+Log events are generally tagged with useful context information which is
+available both lexically (eg, module, file name, line number) and dynamically
+(eg, time, stack trace, thread id).  Log records should have *consistent,
+flexible metadata* which represents and preserve this structured information in
+a way that can be collected systematically.
+
+* Each logging location should have a unique identifier, `id`, passed as part of
+  the log record metadata.  This greatly simplifies tasks such limiting the rate
+  of logging for a given line of code.
 * Users should be able to add structured information to log records, to be
   preserved along with data extracted from the logging context. For example, a
   list of `key=value` pairs offers a decent combination of simplicity and power.
-* Formatting and dispatch of log records should be in the hands of the user if
-  they need it. For example, a log handler library may need to write json
-  records across the network to a log server.
-* It should be possible to log to a user defined log context; automatically
-  choosing a context for zero setup logging may not suit all cases.  For
-  example, in some cases we may want to use a log context explicitly attached to
-  a user-defined data structure.
-* It should be possible to control log filtering per thread or task.
-* Possible extensions
-    * Unique message IDs based on code location for finer grained message
-      filtering?
+* Clear guidelines should be given about the meaning and appropriate use of
+  standard log levels so libraries can be consistent.
 
-The design should allow for an **efficient implementation**, to encourage
+Log *collection* should be unified:
+
+* For all libraries using the standard logging API, it should be simple to
+  intercept, and dispatch logs in a unified way which is under the control of
+  the application author.  For example, to write json log records across the
+  network to a log server.
+* It should be possible to naturally control log dispatch from concurrent tasks.
+  For example, if the application uses a library to handle simultaneous HTTP
+  connections for both an important task and a noncritical background job, we
+  may wish to handle the messages generated by these two `Task`s differently.
+
+The design should allow for an *efficient implementation*, to encourage
 the availability of logging in production systems; logs you don't see should be
 almost free, and logs you do see should be cheap to produce. The runtime cost
-comes in three flavours:
+comes in a few flavours:
 
-* Cost in the logging library, to determine whether to filter a message.
-* Cost in user code, to construct quantities which will only be used in the
+* Cost in the logging frontend, to determine whether to filter a message.
+* Cost in the logging frontend, in collecting context information.
+* Cost in user code, to construct quantities which will only be used in a
   log message.
-* Cost in the logging library in collecting context information and
-  to dispatch and format log records.
+* Cost in the logging backend, in filtering and displaying messages.
 
 
 ## Proposed design
 
 A prototype implementation is available at https://github.com/c42f/MicroLogging.jl
+
 ### Quickstart Example
 
 #### Frontend
@@ -111,7 +128,7 @@ A prototype implementation is available at https://github.com/c42f/MicroLogging.
 @info "Information about normal program operation"
 @warn "A potentially problem was detected"
 @error "Something definitely went wrong, but we recovered enough to continue"
-@logmsg Log.Info "Explicitly defined info log level"
+@logmsg Logging.Info "Explicitly defined info log level"
 
 # Free form message formatting
 x = 10.50
@@ -132,12 +149,13 @@ foo_val = 10.0
 @info "test" foo=foo_val bar=42
 ```
 
+#### Backend
 
 ### What is a log record?
 
 Logging statements are used to understand algorithm flow - the order and timing
 in which logging events happen - and the program state at each event.  Each
-logging event is preserved in a **log record**.  The information in a record
+logging event is preserved in a *log record*.  The information in a record
 needs to be gathered efficiently, but should be rich enough to give insight into
 program execution.
 
@@ -146,9 +164,9 @@ relevant metadata which can be harvested from the lexical and dynamic
 environment.  Most logging libraries allow for two key pieces of information
 to be supplied explicitly:
 
-* The **log message** - a user-defined string containing key pieces of program
+* The *log message* - a user-defined string containing key pieces of program
   state, chosen by the developer.
-* The **log level** - a category for the message, usually ordered from verbose
+* The *log level* - a category for the message, usually ordered from verbose
   to severe.  The log level is generally used as an initial filter to remove
   verbose messages.
 
@@ -167,7 +185,7 @@ In addition to the explicitly provided information, some useful metadata can be
 automatically extracted and stored with each log record.  Some of this is
 extracted from the lexical environment or generated by the logging frontend
 macro, including code location (module, file, line number) and a unique message
-identifier.  The rest is dynamic state which can generated on demand by the
+identifier.  The rest is dynamic state which can be generated on demand by the
 backend, including system time, stack trace, current task id.
 
 ### The logging frontend
