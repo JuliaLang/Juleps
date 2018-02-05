@@ -122,7 +122,7 @@ The general proposal is to specify the format via additional arguments to interp
 
 The multiple-argument ones are currently syntax errors, so will not present backward compatibility problems. The intention is that keyword arguments expose the straightforward features, and more complicated features and extensions can be provided by Julia objects passed as second arguments.
 
-### Implementation and performance considerations
+### Implementation
 
 Interpolation would call a function `stringformat`. The above would each call something like
 
@@ -132,7 +132,13 @@ Interpolation would call a function `stringformat`. The above would each call so
 
 where `stringformat` is the appropriately defined function returning a formatted string.
 
-However this may result in large numbers of intermediate allocations of small strings. Ideally we would want this to lower to something like
+##  Performance considerations
+
+When considering performance, it is worth considering the desired result.
+
+### Output to string
+
+The user wants to output a Julia `String` object, similar to `string`/`@sprintf` behaviour. In this case, we want to avoid the intermediate allocations of the results of `stringformat`. Ideally we would want this to lower to something like
 
     io = IOBuffer()
     print(io, "π is approximately ")
@@ -141,18 +147,20 @@ However this may result in large numbers of intermediate allocations of small st
     String(take!(io))
 
 where `printformat` instead writes the formatted string directly to `io`.
-    
-If the string is to be written directly to IO device, then we would of course want to do that directly rather than to an intermediate buffer. Ideally we would like this to be possible via directly calling `print`, i.e.
+
+### Output to IO
+
+The user wants to output directly to an IO device (say `IOStream` or `IOBuffer`). In this case, we want to avoid allocating any string at all, i.e. we want to lower 
 
     print(io, "π is approximately ", stringformat(pi, fracdigits=4), ".")
-    
-If not, we could provide a macro `@print` which would do the necessary rewriting, e.g.
 
-    @print(io, "π is approximately $(pi, fracdigits=4).")
-
-would be rewritten to
+directly to
 
     print(io, "π is approximately ")
     printformat(io, pi, fracdigits=4)
     print(io, ".")
+
+If this is not possible, we could provide a macro `@print` which would do the necessary rewriting, e.g.
+
+    @print(io, "π is approximately $(pi, fracdigits=4).")
 
