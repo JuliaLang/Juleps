@@ -140,11 +140,11 @@ When considering performance, it is worth considering the desired result.
 
 The user wants to output a Julia `String` object, similar to current `@sprintf` behaviour. In this case, we want to avoid the intermediate allocations of the results of `stringformat`. Ideally we would want this to lower to something like
 
-    io = IOBuffer()
-    print(io, "π is approximately ")
-    printformat(io, pi, fracdigits=4)
-    print(io, ".")
-    String(take!(io))
+    iobuf = IOBuffer()
+    print(iobuf, "π is approximately ")
+    printformat(iobuf, pi, fracdigits=4)
+    print(iobuf, ".")
+    String(take!(iobuf))
 
 where `printformat` instead writes the formatted string directly to `io`.
 
