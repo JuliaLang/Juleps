@@ -120,7 +120,7 @@ The general proposal is to specify the format via additional arguments to interp
     "π is approximately $(pi, fracdigits=4)."
     "π is approximately $(pi, Decimal(4))."
 
-Both of these are currently syntax errors, so will not present backward compatibility problems. The intention is that keyword arguments expose the straightforward features, and more complicated features and extensions can be provided by Julia objects passed as second arguments.
+The multiple-argument ones are currently syntax errors, so will not present backward compatibility problems. The intention is that keyword arguments expose the straightforward features, and more complicated features and extensions can be provided by Julia objects passed as second arguments.
 
 ### Implementation and performance considerations
 
