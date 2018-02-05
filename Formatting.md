@@ -138,7 +138,7 @@ When considering performance, it is worth considering the desired result.
 
 ### Output to string
 
-The user wants to output a Julia `String` object, similar to `string`/`@sprintf` behaviour. In this case, we want to avoid the intermediate allocations of the results of `stringformat`. Ideally we would want this to lower to something like
+The user wants to output a Julia `String` object, similar to current `@sprintf` behaviour. In this case, we want to avoid the intermediate allocations of the results of `stringformat`. Ideally we would want this to lower to something like
 
     io = IOBuffer()
     print(io, "π is approximately ")
@@ -150,7 +150,7 @@ where `printformat` instead writes the formatted string directly to `io`.
 
 ### Output to IO
 
-The user wants to output directly to an IO device (say `IOStream` or `IOBuffer`). In this case, we want to avoid allocating any string at all, i.e. we want to lower 
+The user wants to output directly to an IO device (say `IOStream` or `IOBuffer`), similar to current `@printf` behaviour. In this case, we want to avoid allocating any string at all, i.e. we want to lower 
 
     print(io, "π is approximately ", stringformat(pi, fracdigits=4), ".")
 
