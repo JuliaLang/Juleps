@@ -102,7 +102,7 @@ A quick summary of other languages
 - C++ does funny things with [`<<`](http://www.cplusplus.com/reference/ostream/ostream/operator%3C%3C/). There are also various 3rd party libraries
   * [fastformat](http://www.fastformat.org/)
   * [fmtlib](https://github.com/fmtlib/fmt)
-- Rust [std::fmt](https://doc.rust-lang.org/std/fmt/) uses positional and/or keyword arguments, with it's own minilanguage (appears similar to Pythons).
+- Rust [std::fmt](https://doc.rust-lang.org/std/fmt/) uses positional and/or keyword arguments, with its own minilanguage (appears similar to Python's).
 - Haskell [`printf`](https://hackage.haskell.org/package/base-4.10.1.0/docs/Text-Printf.html) uses positional substitution, and usual printf formatting
 - C# has 2 formats
   * [`String.Format`](https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx) uses positional substitution
