@@ -148,7 +148,7 @@ If the string is to be written directly to IO device, then we would of course wa
     
 If not, we could provide a macro `@print` which would do the necessary rewriting, e.g.
 
-    @print(io, "π is approximately ", stringformat(pi, fracdigits=4), ".")
+    @print(io, "π is approximately $(pi, fracdigits=4).")
 
 would be rewritten to
 
