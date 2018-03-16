@@ -74,6 +74,7 @@ Additional things I would like to support:
   * i.e. `0.1` => `"0.1000000000000000055511151231257827021181583404541015625"`
 - custom radix point
 - custom exponent symbol (needed for current `Float32` printing)
+- option for no leading 0 (e.g. `0.1` as ".1")
 - digit separators (both for left and right of radix point)
   * typically 3 digits at a time (i.e. thousands), but grouping should be customisable
   * See https://blogs.msdn.microsoft.com/oldnewthing/20060417-06/?p=31513
