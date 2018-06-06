@@ -89,6 +89,7 @@ Additional things I would like to support:
 - percentages without intermediate rounding
 - custom character sets (for both significand and exponent)
 - alignment control
+- control printing of nested objects (e.g. print an array to full precision)
 
 ## Other languages
 A quick summary of other languages
