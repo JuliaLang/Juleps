@@ -20,19 +20,19 @@ objects.
 
 Specific use cases that we are trying to address are:
 
-* *Allowing the Julia GC to manage foreign objects with arbitrary
+1. *Allowing the Julia GC to manage foreign objects with arbitrary
   layouts.* Not all objects -- especially those from preexisting
   libraries -- fit Julia's type system, for example, specialized
   container types written in C/C++. Such objects can comprise multiple
   memory blocks that require a custom marking mechanism and may also
-  require finalizers written in C.
-* *Providing additional roots to the GC.* Currently, to have additional
+  require low-level finalizer behavior written in C.
+2. *Providing additional roots to the GC.* Currently, to have additional
   roots, they must be stored in a location that is visible to Julia.
   This can be expensive if such roots are updated frequently or are
   contained in data structures that would have to be laboriously
   translated into a format usable by Julia. Instead, we want to allow
   for roots to be discoverable at the beginning of a garbage collection.
-* *Conservative scanning of stack frames and objects.* Currently,
+3. *Conservative scanning of stack frames and objects.* Currently,
   scanning does have to be precise. If we desire to use the GC for
   foreign code that requires conservative scanning (especially for
   foreign stack frames), then it is necessary to have functionality
@@ -54,13 +54,13 @@ discussion of overhead can be found accompanying the descriptions of
 these hooks.
 
 An implementation of this proposal can be found on GitHub under
-https://github.com/rbehrends/julia (branch `rb/gc-extensions`). See
+<https://github.com/rbehrends/julia> (branch `rb/gc-extensions`). See
 the example in the `test/gcext` subdirectory for an example of using
 this API.
 
 An implementation of GAP that uses the Julia GC in lieu of its native
-GC can likewise be found on GitHub at https://github.com/rbehrends/gap
-(branch `alt-gc`). This version of GAP can be built with:
+GC can likewise been found on GitHub at <https://github.com/rbehrends/gap>
+(branch `alt-gc`). That version of GAP can be built with:
 
     ./autogen.sh
     ./configure --with-gc=julia --with-julia=/path/to/julia/usr
@@ -72,39 +72,50 @@ In order to allow foreign code to have access to necessary functionality
 in the garbage collector, we allow foreign code to register callbacks for
 certain GC events. We provide for six types of callbacks:
 
-* `pre_gc` (beginning of garbage collection).
-* `post_gc` (end of garbage collection).
-* `root_scanner` (before scanning GC roots).
-* `task_scanner` (when scanning Julia tasks).
-* `notify_external_alloc` (when an external object is allocated).
-* `notify_external_free` (when an external object is freed).
+1. Beginning of garbage collection (`pre_gc`)
+2. End of garbage collection (`post_gc`)
+3. When scanning GC roots (`root_scanner`)
+4. When scanning Julia tasks (`task_scanner`)
+5. When an external object is allocated (`notify_external_alloc`).
+6. When an external object is deallocated (`notify_external_free`).
 
-With external objects, we refer to what in the current implementation are
+These callbacks are *not* per se thread-safe. It is up to to the callback
+implementation to ensure that no violations of thread-safety occur.
+
+In particular, each of these can be called from any thread. All except the
+first two can be called concurrently. In the current Julia GC implementation,
+the `post_gc` callback may also not be called before the next `pre_gc`.
+
+With external objects, we refer to what in the current Julia implementation are
 called `bigval_t` objects. These are allocated using the system's memory
 allocator rather than using Julia's external allocator. In order to not
-expose the implementation detail, we talk about "internal" and "external"
+expose this implementation detail, we talk about "internal" and "external"
 objects rather than objects that are allocated as part of Julia's object
 pool or through system routines, respectively.
 
 For each type of callback, there is a corresponding function pointer type.
-Registering and deregistering callbacks occurs via macros.
+Registering and deregistering callbacks occurs via corresponding setter
+functions.
 
 ```
 typedef void (*jl_gc_cb_pre_gc_t)(int full);
 typedef void (*jl_gc_cb_post_gc_t)(int full);
 typedef void (*jl_gc_cb_root_scanner_t)(int full);
 typedef void (*jl_gc_cb_task_scanner_t)(jl_task_t *task, int full);
-typedef void (*jl_gc_cb_external_alloc_t)(void *addr, size_t size);
-typedef void (*jl_gc_cb_external_free_t)(void *addr);
+typedef void (*jl_gc_cb_notify_external_alloc_t)(void *addr, size_t size);
+typedef void (*jl_gc_cb_notify_external_free_t)(void *addr);
 
-#define jl_gc_register_callback(cb, func)
-#define jl_gc_deregister_callback(cb, func)
+void jl_gc_set_cb_root_scanner(jl_gc_cb_root_scanner_t cb, int enable);
+void jl_gc_set_cb_task_scanner(jl_gc_cb_task_scanner_t cb, int enable);
+void jl_gc_set_cb_pre_gc(jl_gc_cb_pre_gc_t cb, int enable);
+void jl_gc_set_cb_post_gc(jl_gc_cb_post_gc_t cb, int enable);
+void jl_gc_set_cb_notify_external_alloc(jl_gc_cb_notify_external_alloc_t cb, int enable);
+void jl_gc_set_cb_notify_external_free(jl_gc_cb_notify_external_free_t cb, int enable);
 ```
 
-The `jl_gc_register_callback()` and `jl_gc_deregister_callback()` macros
-are called with the appropriate index and a function pointer of the
-matching type. Each function can be registered at most once; duplicate
-registrations will be discarded.
+For each setter function, a callback function is supplied, along with a flag
+(`1` for enabling the callback, `0` for removing it again). Attempting to
+register a callback multiple times will only register it once.
 
 *Performance impact:* The callback implementation is designed to incur
 negligible overhead if no callbacks are used and no more overhead than
@@ -117,16 +128,20 @@ long as the variable is in the cache and the branch target in the BTB.
 ## Additional GC roots and hooking into the GC process
 
 We provide three callbacks that are called at the beginning of a GC
-(`pre_gc`), the beginning of the mark phase (`root_scanner`),
-and the end of the GC (`post_gc`).
+(`pre_gc`), the beginning of the mark phase (`root_scanner`), and the end of
+the GC (`post_gc`). As these callbacks are tested and called only once per
+collection, overhead should be negligible. The `full` argument passed
+to these callbacks indicates whether this is a full or partial garbage
+collection.
 
-As these callbacks are tested and called only once per collection, overhead
-should be negligible.
+In addition, we also provide a `task_scanner` hook, which functions like
+the `root_scanner` hook, except that it is called for each task and with
+a pointer to the task object as its first argument.
 
-Additional roots can be marked from the root scanner callback by
-calling the `jl_gc_mark_queue_obj()` function, which takes a pointer to
-the current thread's thread-local storage a pointer to the object as its
-parameters.
+Additional roots can be marked from the `root_scanner` and
+`task_scanner` callbacks by calling the `jl_gc_mark_queue_obj()`
+function, which takes a pointer to the current thread's thread-local
+storage a pointer to the object as its parameters.
 
 ```
 int jl_gc_mark_queue_obj(jl_ptls_t ptls, jl_value_t *obj);
@@ -139,37 +154,66 @@ the thread-local storage of the current thread.
 The return value of `jl_gc_mark_queue_obj()` can be ignored for marking
 roots, but will be relevant for marking foreign objects (see below).
 
+When processing large objects, calling `jl_gc_mark_queue_obj()` can be
+ineffecient, as each object will be pushed on the mark stack separately.
+
+If possible, it is therefore recommended that programmers use the
+following function, designed for arrays of references, which handles
+this use case more efficiently:
+
+```
+void jl_gc_mark_queue_objarray(jl_ptls_t ptls, jl_value_t *parent,
+    jl_value_t **objs, size_t nobjs);
+```
+
+Here, `parent` is a reference to the current object, `objs` is a pointer
+to the start of an array of object references, and `nobjs` is the number
+of object references contained in that array. That array must be part of
+the object; it must not be allocated in static memory or on the stack.
+
+Unlike `jl_gc_mark_queue_obj()`, this function does not have a return
+value, as it does the requisite tracking itself.
+
+Calling this function will only require one slot on the mark stack, as
+opposed to the `nobjs` slot that individual calls to
+`jl_gc_mark_queue_obj()` would require, making it considerably more
+memory efficient.
+
 ## Managing foreign objects with custom layouts
 
 Foreign objects with custom layouts can define their own datatype through
-the `jl_new_foreign_type()` function. Its first three parameters are the
-same as for regular data types; following are a pointer to a mark function
-and a pointer to a finalizer function (the latter of which can be null).
-
-The mark function argument (`markfunc`) and the finalizer function
-(`finalizefunc`) take function pointer arguments; the finalizer function
-can be `NULL`.
-
-The `haspointers` parameter should be non-zero if
-the object may contain references to Julia objects; the `large` parameter
-should be non-zero if the size is greater than the value returned by
-`jl_gc_max_internal_obj_size()` and zero otherwise. If the object can be
-both larger or not, then two distinct foreign types need to be created, one
-for the case where the size is less than or equal and one for the case where
-it is larger than the value of `jl_gc_max_internal_obj_size()`.
+the `jl_new_foreign_type()` function:
 
 ```
 typedef uintptr_t (*jl_markfunc_t)(jl_ptls_t ptls, jl_value_t *obj);
-typedef void (*jl_finalizefunc_t)(jl_value_t *obj);
+typedef void (*jl_sweepfunc_t)(jl_value_t *obj);
+
 jl_datatype_t *jl_new_foreign_type(
   jl_sym_t *name,
   jl_module_t *module,
   jl_datatype_t *super,
   jl_markfunc_t markfunc,
-  jl_finalizefunc_t finalizefunc,
+  jl_sweepfunc_t sweepfunc,
   int haspointers,
   int large
 );
+```
+
+The first three parameters of `jl_new_foreign_type` are the same as for
+regular data types; following are a pointer to a mark function
+(`markfunc`) and a pointer to a sweep function (`sweepfunc`); the latter
+of which can be null.
+
+The `haspointers` parameter should be non-zero if instances of the new
+datatype may contain references to Julia objects; the `large` parameter
+should be non-zero if the size of instances of the new datatype will be
+greater than the value returned by `jl_gc_max_internal_obj_size()` and
+zero otherwise. If the objects can be both larger or not, then two
+distinct foreign types need to be created, one for the case where the
+size is less than or equal and one for the case where it is larger than
+the value of `jl_gc_max_internal_obj_size()`.
+
+```
 size_t jl_gc_max_internal_obj_size(void);
 ```
 
@@ -182,14 +226,17 @@ To accomplish that, such foreign types use the existing
 which is looked at after the other data types and the other alternatives
 for `fielddesc_type`.
 
-The mark function gets passed a pointer to thread-local storage (`ptls`)
+### Mark functions for foreign objects
+
+The mark function `markfunc` gets passed a pointer to thread-local
+storage (`ptls`)
 and the object to be marked (which will be of the type defined through
 `jl_new_foreign_type()`. The `ptls` argument is an optimization so that
 `jl_get_ptls_states()` does not need to be called unnecessarily during
 the mark loop.
 
 The mark function implementation also uses `jl_gc_mark_queue_obj()` to
-mark objects, as with the root scanner; however, in contrast to marking
+mark objects, as with the `root_scanner` callback; however, in contrast to marking
 roots, the return value cannot be ignored. Per object, the mark function
 should count how often `jl_gc_mark_queue_obj()` for subjects return
 non-zero values and return that number. If an object has no subobjects,
@@ -200,20 +247,37 @@ collection. The return value of `jl_gc_mark_queue_obj()` is non-zero
 if a young generation object has been marked. When the mark function
 has been called for an old object and the mark function returns a
 non-zero value (thus showing how many young objects have been marked
-from the old one one), the GC knows to update its internal data
+from the old one), the GC knows to update its internal data
 structures accordingly.
 
 For an example of this, see the `gcext` test in the Julia repository,
 which defines a couple of such custom mark functions.
 
-To enable C finalization for such an object, the function
-`jl_gc_set_needs_foreign_finalizer()` has to be called for an
-object. This object has to be of a foreign type and that foreign
-function has to be defined with a non-null finalizer function.
+### Sweep functions for foreign objects
+
+Sweep functions for foreign objects are similar to, but more limited
+than finalizers, as they are not intended to replace finalizer
+functionality. Rather, they are meant to clean up complex memory
+structures allocated with raw malloc calls or operating system
+resources. They will be called during the sweep phase and must not have
+side effects that are visible to Julia.
+
+To enable sweep functions for a foreign object, the function
+`jl_gc_schedule_foreign_sweepfunc()` has to be called on the object,
+which has to be of a foreign type and that foreign function has to be
+defined with a non-null sweep function `sweepfunc`. Without that call,
+the sweep function will not be called on this particular object. This is
+to avoid unnecessary overhead if not all objects of that type require
+extra sweep phase semantics. This function should be called at most once
+per object; if called multiple times, the sweep function may be invoked
+more than once on the given object.
 
 ```
-JL_DLLEXPORT void jl_gc_set_needs_foreign_finalizer(jl_value_t *obj);
+JL_DLLEXPORT void jl_gc_schedule_foreign_sweepfunc(jl_ptls_t ptls,
+        jl_value_t *obj);
 ```
+
+### Allocating foreign objects
 
 On the C side, such objects can be allocated using the call
 `jl_gc_alloc_typed()`; the function takes a pointer to the thread's
@@ -228,8 +292,25 @@ JL_DLLEXPORT void * jl_gc_alloc_typed(jl_ptls_t ptls, size_t sz,
 ## Conservative scanning
 
 Some external modules may require conservative scanning, especially
-of the stack. This was the case for example, with our application
-involving the GAP language.
+of the stack. This was the case, for example, with our application
+involving the GAP computer algebra system.
+
+We note that conservative scanning should be avoided if at all possible;
+it is not intended as a way to avoid tracking Julia references (for which
+the `root_scanner` callback and custom marking functions offer efficient
+options if other approaches fail), but as a feature of last resort if
+integrating an existing codebase through other means is not viable.
+
+Conservative scanning must be enabled through a call to the following
+function:
+
+```
+void jl_gc_enable_conservative_scanning(void);
+```
+
+This function can be called from C code both before and after `jl_init()` 
+and is thread-safe. Enabling this introduces a very small, but non-zero
+overhead, which is why it is not enabled by default.
 
 In order to handle conservative scanning, we need to expose the fact
 that Julia distinguishes between objects it manages itself (which we
@@ -240,14 +321,13 @@ The proposed functionality relies on calls to Julia to determine
 if a pointer is a reference to an internal object, but leaves it up
 to the author of the foreign code to determine this for external
 objects; to this end, we provide callbacks to notify foreign code
-of the allocation (`notify_external_alloc`) or deallocation
-(`notify_external_free`).
+of the allocation or deallocation of such objects.
 
 The accompanying function pointer types are:
 
 ```
-typedef void (*jl_gc_cb_external_alloc_t)(void *addr, size_t size);
-typedef void (*jl_gc_cb_external_free_t)(void *addr);
+typedef void (*jl_gc_cb_notify_external_alloc_t)(void *addr, size_t size);
+typedef void (*jl_gc_cb_notify_external_free_t)(void *addr);
 ```
 
 The allocation callback is invoked with the address and size of the
@@ -257,6 +337,13 @@ managed by Julia. The intent here is that foreign code can track
 allocations and deallocations in a data structure of its own if
 needed. An example of this can be seen in the `gcext` test, where
 we use a balanced tree to track allocations.
+
+Note that registering such callbacks will only track allocations that
+occur *after* the callbacks have been set. We assume here that the client
+is only interested in tracking its own objects that may be stored in
+opaque stack frames, but not other Julia objects that may be passed in
+from Julia calls. If the client needs to track *all* allocations, then
+the callbacks *must* be registered before calling `jl_init()`.
 
 *Performance impact:* The overhead for the callbacks should be minimal,
 especially since the cost of allocating large objects through the system
@@ -269,8 +356,8 @@ such a case, the validity of the type field should also be checked,
 e.g. with: `jl_gc_internal_obj_base_ptr(jl_typeof(obj)) != NULL` (see
 below for the semantics of this function).
 
-To determine whether a pointer points to an internal object, programmers
-can use the following functions:
+To determine whether a pointer points to an internal object, the
+following functions may be used:
 
 ```
 jl_value_t *jl_gc_internal_obj_base_ptr(void *p);
@@ -285,17 +372,6 @@ optimized fast path version; it returns a non-zero value if and only the
 argument is a valid internal object or if it points to memory reserved
 for the allocation of such objects. In the latter case, it is guaranteed
 that the type field of such an object does not contain a valid datatype.
-
-In addition, we also provide a hook to conservatively scan task stacks
-(`jl_gc_cb_task_scanner`):
-
-```
-typedef void (*jl_gc_cb_task_scanner_t)(jl_task_t *task, int full);
-```
-
-This task scanner hook functions like the root scanner hook, except
-that it is called for each task and with a pointer to the task object
-as an argument.
 
 ## Performance evaluation
 
