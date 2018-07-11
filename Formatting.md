@@ -99,7 +99,8 @@ A quick summary of other languages
   * [% substitution](https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting): uses printf style formats
   * [`str.format`](https://docs.python.org/3/library/stdtypes.html#str.format)/[`str.format_map`](https://docs.python.org/3/library/stdtypes.html#str.format_map): uses its own [format string syntax](https://docs.python.org/3/library/string.html#formatstrings), based on positional/named references.
   * [Template strings](https://docs.python.org/3/library/string.html#template-strings): substitution using `$`, does not provide any formatting options
-  * [f-strings](https://docs.python.org/3/reference/lexical_analysis.html#f-strings)): uses the same syntax as `str.format`, but allows expressions to be substituted directly
+  * [f-strings](https://docs.python.org/3/reference/lexical_analysis.html#f-strings): uses the same syntax as `str.format`, but allows expressions to be substituted directly
+    - See [PEP 498](https://www.python.org/dev/peps/pep-0498/) for background.
 - JavaScript uses backticks to denote template strings which support direct expression substitution. No special formatting syntax is provided.
 - C++ does funny things with [`<<`](http://www.cplusplus.com/reference/ostream/ostream/operator%3C%3C/). There are also various 3rd party libraries
   * [fastformat](http://www.fastformat.org/)
