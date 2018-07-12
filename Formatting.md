@@ -20,6 +20,7 @@ Base Julia currently provides 2 distinct ways to substitute variables into strin
 
 Some additional functionality is also provided in third party packages:
 - [Formatting.jl](https://github.com/JuliaIO/Formatting.jl)
+  - Much of this has been incorporated into [Format.jl](https://github.com/JuliaString/Format.jl)
 - [StringLiterals.jl](https://github.com/JuliaString/StringLiterals.jl)
 
 ## Summary
