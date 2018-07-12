@@ -126,6 +126,8 @@ The general proposal is to specify the format via additional arguments to interp
 
 The multiple-argument ones are currently syntax errors, so will not present backward compatibility problems. The intention is that keyword arguments expose the straightforward features, and more complicated features and extensions can be provided by Julia objects passed as second arguments.
 
+Note there have been proposals to change the interpolation syntax (issue [#25178](https://github.com/JuliaLang/julia/issues/25178)): that is outside the scope of this Julep as long as it is possible to use multiple arguments.
+
 ### Implementation
 
 Interpolation would call a function `stringformat`. The above would each call something like
