@@ -28,6 +28,7 @@ Many packages in the ecosystem prefix module-internal bindings with an underscor
 * [JuliaLang/julia#12064](https://github.com/JuliaLang/julia/issues/12064) "Document privacy of type-fields"
 * [JuliaLang/julia#12069](https://github.com/JuliaLang/julia/issues/12069) "Only make exported bindings available with `import`"
 * [JuliaLang/julia#30204](https://github.com/JuliaLang/julia/issues/30204) "Add export-like keyword for private names in a module"
+* [JuliaLang/julia#22147](https://github.com/JuliaLang/julia/pull/22147) "Make it easier to mark a new module as top" — a change to lowering which allows lowered forms like `Expr(:top, :getproperty)` to resolve to names in the current module.  See also [JuliaLang/julia#25750 (comment)](https://github.com/JuliaLang/julia/issues/25750#issuecomment-360840183).
 * See extended discussion of binary `$` as notation for `getfield` over at https://github.com/JuliaLang/julia/issues/25750.
 * Binary `@` also appears to be available and was suggested in the discussion of https://github.com/JuliaLang/julia/pull/30646; some of the somewhat off topic musings there led to this julep.
 * The meaning of `export` with regard to public symbols has been discussed in many places.
