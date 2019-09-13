@@ -196,6 +196,13 @@ about the color of the function they're being passed. Bob argues that Go
 handles this in the nicest way by having first class support for continuations
 in the language. The Julia runtime does this in the same way.
 
+On the other hand, a syntax such as `async`/`await` is arguably a useful visual
+marker for possible cancellation points (`await`) and for which functions are
+cancellable (`async`). Note that this doesn't have to be implemented at the
+language level; for example, Go's context and errgroup also allow the reader to
+recognize where the cancellation can happen (listening to the Done channel) and
+which functions can be cancelled (those that accept Context as an argument).
+
 ## Prototypical use cases
 
 * The "happy eyeballs" algorithm is becoming a standard example of structured
