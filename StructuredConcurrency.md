@@ -59,7 +59,8 @@ code*. Without this,
   whether it runs to completion is an implementation detail of the runtime.
 * Computation cannot be cancelled systematically because there's no natural
   tree of child tasks.
-* Task local context leaks from parents into long running children.
+* Scope-based resource cleanup (eg, with `open(...) do io`) is broken because
+  task local context can leak from parents into long running children.
 
 For a colourful view on the downsides of unstructured concurrency, `@njsmith`
 has expressed it this way in his blog post [Notes on structured concurrency or,
