@@ -82,7 +82,7 @@ has expressed it this way in his blog post [Notes on structured concurrency or,
 
 Julia 1.0 supports a limited kind of structured concurrency via the `@sync`
 block which waits for lexically contained child tasks (scheduled using
-`@async`) to complete. However, like go, there's no requirement that concurrent
+`@async`) to complete. However, like Go, there's no requirement that concurrent
 work is actually scoped this way; that's completely up to the user and they may
 use `@async` anywhere. At first sight, it may seem just as natural to choose an
 unstructured
@@ -124,7 +124,7 @@ claimed](https://github.com/golang/go/issues/29011#issuecomment-443441031) that
 this makes arbitrary cancellation an impossible problem for user code. The
 standard compromise is to make only a core set of operations (including IO)
 cancellable. This is the solution offered in
-[python trio checkpoints](https://trio.readthedocs.io/en/stable/reference-core.html#checkpoints),
+[Python Trio checkpoints](https://trio.readthedocs.io/en/stable/reference-core.html#checkpoints),
 libdill's family of IO functions and in pthreads (see [pthread\_cancel](http://man7.org/linux/man-pages/man3/pthread_cancel.3.html)
 and [pthreads cancellation points](http://man7.org/linux/man-pages/man7/pthreads.7.html)).
 In contrast, consider the failed preemptive cancellation APIs
@@ -157,15 +157,15 @@ So it's fairly clear that arbitrary cancellation without cleanup is a
 non-starter and that arbitrary cancellation with cleanup is difficult. But that
 leaves us in a difficult situation: how do we allow for cancellation of
 expensive numerical operations? Are there options for cancellation of numerical
-loops with a semantic which can be understood by users? The go people seem to
+loops with a semantic which can be understood by users? The Go people seem to
 consider that arbitrary *preemption* is workable, but can arbitrary
 cancellation be made to work with the right language and library features?
 
 #### Runtime technicalities for preemption
 
 On a technical level, our runtime situation in julia-1.3 is very similar to
-`go` where preemption is cooperative and a rouge goroutine can sometimes wedge
-the entire system. There has been a large amount of work in the go community to
+Go where preemption is cooperative and a rouge goroutine can sometimes wedge
+the entire system. There has been a large amount of work in the Go community to
 address this, leading to the proposal
 ["Non-cooperative goroutine preemption"](https://github.com/golang/proposal/blob/master/design/24543-non-cooperative-preemption.md).
 In the process, several interesting alternatives
@@ -179,20 +179,20 @@ quicly to a safe point.
 When comparing to solutions in other languages it's important to mention that
 many have introduced special syntax to mark concurrent code.
 
-* C# introduced `async`/`await`; many followed (python, rust, ...). This makes
+* C# introduced `async`/`await`; many followed (Python, Rust, ...). This makes
   potential suspension points syntactic.
-* `await` in python marks preemption points. `async` is required to go with it,
+* `await` in Python marks preemption points. `async` is required to go with it,
   forming a chain of custody around "potentially suspending" functions.
 * Kotlin has `suspend` to introduce a special calling convention which passes
   along the coroutine context.
-* go doesn't have `async` or `await` but is deeply concurrent and is the best
+* Go doesn't have `async` or `await` but is deeply concurrent and is the best
   analogy to Julia.
 
 The problem with `async`/`suspend` is that it splits the world of functions in
 two, as nicely expressed in Bob Nystrom's blog post
 ["What color is your function?"](http://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/).
 This is a barrier to composability because higher order functions have to know
-about the color of the function they're being passed. Bob argues that go
+about the color of the function they're being passed. Bob argues that Go
 handles this in the nicest way by having first class support for continuations
 in the language. The Julia runtime does this in the same way.
 
@@ -203,7 +203,7 @@ in the language. The Julia runtime does this in the same way.
   - [General discussion](https://trio.discourse.group/t/happy-eyeballs-structured-concurrencys-hello-world/57)
   - [Trio implementation](https://github.com/python-trio/trio/blob/master/trio/_highlevel_open_tcp_stream.py)
   - [Libdill implementation](https://github.com/sustrik/libdill/blob/master/happyeyeballs.c) and [discussion](http://250bpm.com/blog:139)
-* The go concurrency tutorial — in his talk `@elizarov` suggested that
+* The Go concurrency tutorial — in his talk `@elizarov` suggested that
   implementing all the examples there was a great inspiriation.
 
 ## Related julia issues and prototypes
@@ -224,7 +224,7 @@ TODO: We should organize these, and more, with a tag.
 ## Resources
 
 A lot has been written on structured concurrency quite recently. Relevant
-implementations are available in C, Kotlin and python, with go also having to
+implementations are available in C, Kotlin and Python, with Go also having to
 deal with many of the same issues. The Trio forum has a section dedicated to
 the [language-independent discussion of structured
 concurrency](https://trio.discourse.group/c/structured-concurrency).
@@ -232,7 +232,7 @@ concurrency](https://trio.discourse.group/c/structured-concurrency).
 #### Links
 
 * [Structured concurrency resources - Structured concurrency - Trio forum](https://trio.discourse.group/t/structured-concurrency-resources/21)
-* [Reading list · python-trio/trio Wiki](https://github.com/python-trio/trio/wiki/Reading-list)
+* [Reading list · Python-Trio/Trio Wiki](https://github.com/python-trio/trio/wiki/Reading-list)
 
 #### People in the wider community
 
@@ -247,11 +247,11 @@ concurrency](https://trio.discourse.group/c/structured-concurrency).
   - [Update on Structured Concurrency](http://250bpm.com/blog:137)
   - [Two approaches to structured concurrency](http://250bpm.com/blog:139)
 * Nathanial Smith ([`@njsmith`](https://github.com/njsmith)) is the author of
-  the python Trio library and a key advocate of structured concurrency. His
+  the Python Trio library and a key advocate of structured concurrency. His
   [blog](https://vorpus.org/blog/archives.html) has several very interesting
   posts on the topic.
   - [Timeouts and cancellation for humans](https://vorpus.org/blog/timeouts-and-cancellation-for-humans)
-  - [Notes on structured concurrency, or: Go statement considered harmful](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/).
+  - [Notes on structured concurrency, or: go statement considered harmful](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/).
 
   See also his PyCon 2018 talk:
   - [Nathaniel J. Smith - Trio: Async concurrency for mere mortals - PyCon 2018 - YouTube](https://www.youtube.com/watch?v=oLkfnc_UMcE)
@@ -263,7 +263,7 @@ concurrency](https://trio.discourse.group/c/structured-concurrency).
 #### Structured concurrency libraries
 
 * [libdill (C)](http://libdill.org/structured-concurrency.html)
-* [Trio (python)](https://trio.readthedocs.io/en/stable)
+* [Trio (Python)](https://trio.readthedocs.io/en/stable)
 * [Kotlin coroutines](https://kotlinlang.org/docs/reference/coroutines/basics.html#structured-concurrency)
 
 #### Cancellation
@@ -272,4 +272,5 @@ concurrency](https://trio.discourse.group/c/structured-concurrency).
   - [Timeouts and cancellation for humans](https://vorpus.org/blog/timeouts-and-cancellation-for-humans)
 * Go
   - [errgroup](https://godoc.org/golang.org/x/sync/errgroup)
-  - [Discussion of using the trio approach for go](https://github.com/golang/go/issues/29011)
+  - [context](https://golang.org/pkg/context)
+  - [Discussion of using the Trio approach for Go](https://github.com/golang/go/issues/29011)
