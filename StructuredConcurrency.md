@@ -228,6 +228,11 @@ deal with many of the same issues. The Trio forum has a section dedicated to
 the [language-independent discussion of structured
 concurrency](https://trio.discourse.group/c/structured-concurrency).
 
+#### Links
+
+* [Structured concurrency resources - Structured concurrency - Trio forum](https://trio.discourse.group/t/structured-concurrency-resources/21)
+* [Reading list · python-trio/trio Wiki](https://github.com/python-trio/trio/wiki/Reading-list)
+
 #### People in the wider community
 
 * Bob Nystrom ([`@munificent`](http://journal.stuffwithstuff.com)) works on the
@@ -246,6 +251,9 @@ concurrency](https://trio.discourse.group/c/structured-concurrency).
   posts on the topic.
   - [Timeouts and cancellation for humans](https://vorpus.org/blog/timeouts-and-cancellation-for-humans)
   - [Notes on structured concurrency, or: Go statement considered harmful](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/).
+
+  See also his PyCon 2018 talk:
+  - [Nathaniel J. Smith - Trio: Async concurrency for mere mortals - PyCon 2018 - YouTube](https://www.youtube.com/watch?v=oLkfnc_UMcE)
 * Roman Elizarov ([`@elizarov`](https://github.com/elizarov)) is the team lead
   for Kotlin libraries at JetBrains. Here's his [blog](https://medium.com/@elizarov).
   - [Structured concurrency](https://youtu.be/hW4vjgtPCAY?t=25960) for Kotlin talk at Hydraconf ([talk abstract](https://hydraconf.com/2019/talks/68l5ztovlf0xm9aindouzr))
