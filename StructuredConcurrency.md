@@ -1,5 +1,11 @@
 # Structured Concurrency
 
+* Title: Exploring Structured Concurrency
+* Editor: Chris Foster <chris42f@gmail.com>
+* Created: 2019-09-12
+* Status: Work in progress
+* Discussion: [JuliaLange/julia#33248](https://github.com/JuliaLang/julia/issues/33248)
+
 Here are some notes surveying structured concurrency as it can be applied to
 Julia.
 
