@@ -92,7 +92,7 @@ block which waits for lexically contained child tasks (scheduled using
 work is actually scoped this way; that's completely up to the user and they may
 use `@async` anywhere. At first sight, it may seem just as natural to choose an
 unstructured
-[communicating seqential processes](https://en.wikipedia.org/wiki/Communicating_sequential_processes)
+[communicating sequential processes](https://en.wikipedia.org/wiki/Communicating_sequential_processes)
 (CSP) style in current Julia.
 
 Even if the user chooses structured concurrency with `@sync`, they are still
@@ -178,7 +178,7 @@ In the process, several interesting alternatives
 [were assessed](https://github.com/golang/go/issues/24543) including cooperative
 preemption of loops (by the insertion of safe points) and more complex
 mechanisms such as returning from a signal to out-of-line code which leads
-quicly to a safe point.
+quickly to a safe point.
 
 ## Syntax
 
@@ -217,11 +217,11 @@ which functions can be cancelled (those that accept Context as an argument).
   - [Trio implementation](https://github.com/python-trio/trio/blob/master/trio/_highlevel_open_tcp_stream.py)
   - [Libdill implementation](https://github.com/sustrik/libdill/blob/master/happyeyeballs.c) and [discussion](http://250bpm.com/blog:139)
 * The Go concurrency tutorial — in his talk `@elizarov` suggested that
-  implementing all the examples there was a great inspiriation.
+  implementing all the examples there was a great inspiration.
 
 ## Related julia issues and prototypes
 
-* [Tapir parrallel IR](https://github.com/JuliaLang/julia/pull/31086)
+* [Tapir parallel IR](https://github.com/JuliaLang/julia/pull/31086)
 
 * [API Request : Interrupt and terminate a task](https://github.com/JuliaLang/julia/issues/6283)
 * [Error handling in tasks](https://github.com/JuliaLang/julia/issues/32677)
