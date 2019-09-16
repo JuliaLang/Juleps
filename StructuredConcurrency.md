@@ -170,7 +170,7 @@ cancellation be made to work with the right language and library features?
 #### Runtime technicalities for preemption
 
 On a technical level, our runtime situation in julia-1.3 is very similar to
-Go where preemption is cooperative and a rouge goroutine can sometimes wedge
+Go where preemption is cooperative and a rogue goroutine can sometimes wedge
 the entire system. There has been a large amount of work in the Go community to
 address this, leading to the proposal
 ["Non-cooperative goroutine preemption"](https://github.com/golang/proposal/blob/master/design/24543-non-cooperative-preemption.md).
