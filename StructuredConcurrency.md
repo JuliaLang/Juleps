@@ -58,7 +58,9 @@ To quote the [`libdill` documentation](http://libdill.org/structured-concurrency
 It's all about composability. Structured concurrency is good because it
 reasserts the function call as the natural unit of program composition, where
 the lifetime of a computation is delimited in the *structure of the source
-code*. Without this,
+code*. This is sometimes called the
+[*black box rule*](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/#what-happened-to-goto).
+Without this,
 
 * Task failures can go unhandled because there's nowhere to propagate the error.
 * Task lifetime is not defined by the source code. When a task starts and
